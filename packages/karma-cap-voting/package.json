@@ -1,0 +1,72 @@
+{
+	"name": "@daonuts/karma-cap-voting",
+	"version": "0.0.1",
+	"description": "",
+	"dependencies": {
+		"@aragon/client": "^1.1.1",
+		"@aragon/os": "^4.1.0",
+		"@aragon/ui": "^0.33.0",
+		"@daonuts/common": "^0.0.0",
+		"@daonuts/distribution": "^0.0.1",
+		"@daonuts/hamburger": "^0.0.1",
+		"@daonuts/registry": "^0.0.1",
+		"@daonuts/tipping": "^0.0.1",
+		"@daonuts/token": "^0.0.1",
+		"@daonuts/token-manager": "^0.0.1",
+		"csvtojson": "^2.0.8",
+		"homedir": "^0.6.0",
+		"json2csv": "^4.4.1",
+		"merkle-tree-solidity": "^1.0.8",
+		"openzeppelin-solidity": "^2.2.0",
+		"react": "^16.8.5",
+		"react-dom": "^16.8.5",
+		"request-promise": "^4.2.4",
+		"rxjs-compat": "^6.4.0",
+		"styled-components": "^4.2.0",
+		"web3": "^1.0.0-beta.50",
+		"yargs": "^13.2.2"
+	},
+	"keywords": [],
+	"files": [
+		"/arapp.json",
+		"/build",
+		"/contracts",
+		"/scripts",
+		"/test"
+	],
+	"author": "Aragon Association <legal@aragon.org>",
+	"contributors": [
+		"Jorge Izquierdo <jorge@aragon.one>",
+		"Pierre Bertet <pierre@aragon.one>",
+		"Oliver Nordbjerg <oliver@aragon.one>",
+		"Brett Sun <brett@aragon.one>"
+	],
+	"license": "(GPL-3.0-or-later OR AGPL-3.0-or-later)",
+	"devDependencies": {
+		"@aragon/apps-shared-migrations": "^1.0.0",
+		"@aragon/cli": "^5.6.1",
+		"@aragon/test-helpers": "^1.1.0",
+		"@babel/core": "^7.4.0",
+		"@babel/plugin-proposal-class-properties": "^7.4.0",
+		"@babel/polyfill": "^7.4.0",
+		"@babel/preset-env": "^7.4.2",
+		"babel-plugin-styled-components": "^1.10.0",
+		"parcel-bundler": "^1.12.3"
+	},
+	"scripts": {
+		"start": "npm run start:aragon:ipfs",
+		"start:aragon:ipfs": "aragon run",
+		"start:aragon:http": "aragon run --http localhost:8001 --http-served-from ./dist",
+		"start:app": "npm run sync-assets && npm run build:script -- --no-minify && parcel serve app/index.html -p 8001 --out-dir dist/ --no-cache",
+		"test": "aragon contracts test",
+		"compile": "aragon contracts compile",
+		"sync-assets": "copy-aragon-ui-assets -n aragon-ui ./dist",
+		"build:app": "parcel build app/index.html -d dist/ --public-url '.' --no-cache",
+		"build:script": "parcel build app/script.js -d dist/ --no-cache",
+		"build": "npm run sync-assets && npm run build:app && npm run build:script",
+		"publish:patch": "aragon apm publish patch",
+		"publish:minor": "aragon apm publish minor",
+		"publish:major": "aragon apm publish major",
+		"versions": "aragon apm versions"
+	}
+}

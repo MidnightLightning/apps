@@ -1,0 +1,14 @@
+{
+  "name": "root",
+  "private": true,
+  "devDependencies": {
+    "lerna": "^3.13.1"
+  },
+  "dependencies": {
+  },
+	"scripts": {
+		"publish:patch": "lerna run publish:patch",
+		"publish:minor": "lerna run publish:minor",
+		"publish:major": "lerna run publish:major"
+	}
+}
