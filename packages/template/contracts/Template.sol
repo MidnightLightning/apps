@@ -16,21 +16,16 @@ import "@aragon/os/contracts/lib/ens/ENS.sol";
 import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
 import "@aragon/os/contracts/apm/APMNamehash.sol";
 
-/* import "@daonuts/token/contracts/Token.sol"; */
-
 import "./IAppInstaller.sol";
 
 contract TemplateBase is APMNamehash {
     ENS public ens;
     DAOFactory public fac;
 
-    mapping (address => mapping (string => address)) tokenCache;
-
-    /* event DeployToken(address token, address indexed cacheOwner, string tokenSymbol); */
     event DeployInstance(address dao);
     event InstalledApp(address appProxy, bytes32 appId);
 
-    function TemplateBase(DAOFactory _fac, ENS _ens) {
+    constructor(DAOFactory _fac, ENS _ens) {
         ens = _ens;
 
         // If no factory is passed, get it from on-chain bare-kit
@@ -48,49 +43,21 @@ contract TemplateBase is APMNamehash {
 
         return base;
     }
-
-    /* function cacheToken(Token _token, address _owner, string _tokenSymbol) internal {
-        tokenCache[_owner][_tokenSymbol] = _token;
-        emit DeployToken(_token, _owner, _tokenSymbol);
-    }
-
-    function popTokenCache(address _owner, string _tokenSymbol) internal returns (Token) {
-        require(tokenCache[_owner][_tokenSymbol] != address(0));
-        Token token = Token(tokenCache[_owner][_tokenSymbol]);
-        delete tokenCache[_owner][_tokenSymbol];
-
-        return token;
-    }
-
-    function readTokenCache(address _owner, string _tokenSymbol) public view returns (address) {
-        return tokenCache[_owner][_tokenSymbol];
-    }
-
-    function newToken(string _tokenName, string _tokenSymbol, bool _transfersEnabled) public {
-        Token token = new Token(_tokenName, 18, _tokenSymbol, _transfersEnabled);
-        cacheToken(token, msg.sender, _tokenSymbol);
-    } */
 }
 
 contract Template is TemplateBase {
 
-    function Template(ENS ens) TemplateBase(DAOFactory(0), ens) {
+    constructor(ENS ens) TemplateBase(DAOFactory(0), ens) {
     }
 
-    function newInstance(bytes32 _regRoot, bytes32 _distRoot, IAppInstaller _installer) public {
+    function newInstance(bytes32 _regRoot, bytes32 _distRoot, IAppInstaller _installer) {
         Kernel dao = fac.newDAO(this);
         ACL acl = ACL(dao.acl());
         acl.createPermission(this, dao, dao.APP_MANAGER_ROLE(), this);
 
-        /* Token token = popTokenCache(msg.sender, "APP"); */
-        /* token.changeController(_installer); */
-        /* Token karma = popTokenCache(msg.sender, "KAR"); */
-        /* karma.changeController(_installer); */
-
         // run external installer
         acl.grantPermission(_installer, dao, dao.APP_MANAGER_ROLE());
         acl.grantPermission(_installer, acl, acl.CREATE_PERMISSIONS_ROLE());
-        /* _installer.install(dao, ens, token, karma, _regRoot, _distRoot); */
         _installer.install(dao, ens, _regRoot, _distRoot);
         acl.revokePermission(_installer, dao, dao.APP_MANAGER_ROLE());
         acl.revokePermission(_installer, acl, acl.CREATE_PERMISSIONS_ROLE());

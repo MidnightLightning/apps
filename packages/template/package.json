@@ -1,11 +1,9 @@
 {
-	"name": "@daonuts/template",
-	"version": "0.0.1",
-	"description": "",
-	"dependencies": {
-		"@aragon/client": "^1.1.1",
-		"@aragon/os": "^4.1.0",
-		"@aragon/ui": "^0.33.0",
+  "name": "@daonuts/template",
+  "version": "0.0.1",
+  "description": "",
+  "dependencies": {
+    "@aragon/os": "^4.1.0",
 		"@daonuts/common": "^0.0.0",
 		"@daonuts/distribution": "^0.0.1",
 		"@daonuts/hamburger": "^0.0.1",
@@ -13,33 +11,26 @@
 		"@daonuts/registry": "^0.0.1",
 		"@daonuts/tipping": "^0.0.1",
 		"@daonuts/token": "^0.0.1",
-		"@daonuts/token-manager": "^0.0.1",
-		"csvtojson": "^2.0.8",
-		"homedir": "^0.6.0",
-		"json2csv": "^4.4.1",
-		"merkle-tree-solidity": "^1.0.8",
-		"openzeppelin-solidity": "^2.2.0",
-		"react": "^16.8.5",
-		"react-dom": "^16.8.5",
-		"request-promise": "^4.2.4",
-		"styled-components": "^4.2.0",
-		"web3": "^1.0.0-beta.50",
-		"yargs": "^13.2.2"
-	},
-	"devDependencies": {
-		"@aragon/apps-shared-migrations": "^1.0.0",
-		"@aragon/cli": "^5.6.1",
-		"@aragon/test-helpers": "^1.1.0",
-		"@babel/core": "^7.4.0",
-		"@babel/plugin-proposal-class-properties": "^7.4.0",
-		"@babel/polyfill": "^7.4.0",
-		"@babel/preset-env": "^7.4.2",
-		"babel-plugin-styled-components": "^1.10.0",
-		"parcel-bundler": "^1.12.3"
-	},
-	"scripts": {
-		"test": "aragon contracts test",
-		"compile": "aragon contracts compile",
-		"versions": "aragon apm versions"
-	}
+		"@daonuts/token-manager": "^0.0.1"
+  },
+  "devDependencies": {
+    "@aragon/cli": "^5.6.1"
+  },
+  "scripts": {
+    "start": "npm run start:ipfs",
+    "start:ipfs": "aragon run",
+    "start:http": "aragon run --http localhost:8001 --http-served-from ./dist",
+    "start:ipfs:template": "npm run start:ipfs -- --template Template --template-init @ARAGON_ENS",
+    "start:http:template": "npm run start:http -- --template Template --template-init @ARAGON_ENS",
+    "prepare": "cd app && npm install && cd ..",
+    "start:app": "cd app && npm start && cd ..",
+    "test": "aragon contracts test",
+    "compile": "aragon contracts compile",
+    "build": "cd app && npm run build && cd ..",
+    "publish:patch": "aragon apm publish patch",
+    "publish:minor": "aragon apm publish minor",
+    "publish:major": "aragon apm publish major",
+    "versions": "aragon apm versions",
+		"clean": "rm -rf build && rm -rf dist"
+  }
 }
