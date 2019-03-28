@@ -73,8 +73,6 @@ contract AppInstaller is APMNamehash {
         currencyManager = TokenManager(_dao.newAppInstance(currencyManagerAppId, latestVersionAppBase(currencyManagerAppId)));
         _currency.changeController(currencyManager);
         currencyManager.initialize(_currency, true, 0);
-        acl.createPermission(this, currencyManager, currencyManager.MINT_ROLE(), this);
-        currencyManager.mint(msg.sender, 1); // Give one currency to msg.sender
     }
 
     function installKarmaManager(Kernel _dao, Token _karma) internal returns(TokenManager karmaManager) {
@@ -83,8 +81,6 @@ contract AppInstaller is APMNamehash {
         karmaManager = TokenManager(_dao.newAppInstance(karmaManagerAppId, latestVersionAppBase(karmaManagerAppId)));
         _karma.changeController(karmaManager);
         karmaManager.initialize(_karma, false, 0);
-        acl.createPermission(this, karmaManager, karmaManager.MINT_ROLE(), this);
-        karmaManager.mint(msg.sender, 1); // Give one karma to msg.sender
     }
 
     function permissions(
@@ -92,6 +88,12 @@ contract AppInstaller is APMNamehash {
       KarmaCapVoting _voting, Registry _registry, Distribution _distribution,
       Hamburger _hamburger) internal {
         ACL acl = ACL(_dao.acl());
+
+        acl.createPermission(this, _currencyManager, _currencyManager.MINT_ROLE(), this);
+        _currencyManager.mint(msg.sender, 1); // Give one currency to msg.sender
+
+        acl.createPermission(this, _karmaManager, _karmaManager.MINT_ROLE(), this);
+        _karmaManager.mint(msg.sender, 1); // Give one karma to msg.sender
 
         acl.createPermission(_voting, _registry, _registry.START_REGISTRATION_PERIOD(), _voting);
 

@@ -67,6 +67,7 @@
 		"publish:patch": "aragon apm publish patch",
 		"publish:minor": "aragon apm publish minor",
 		"publish:major": "aragon apm publish major",
-		"versions": "aragon apm versions"
+		"versions": "aragon apm versions",
+		"clean": "rm -rf build && rm -rf dist"
 	}
 }

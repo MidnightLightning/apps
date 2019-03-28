@@ -4,7 +4,8 @@ import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
-import "@daonuts/token/contracts/Token.sol";
+import "@daonuts/token-manager/contracts/TokenManager.sol";
+import "@daonuts/token/contracts/IERC20.sol";
 import "@daonuts/registry/contracts/Registry.sol";
 
 contract Hamburger is AragonApp {
@@ -33,7 +34,8 @@ contract Hamburger is AragonApp {
     /// State
     mapping(uint => Asset) public assets;
     uint public assetsCount;
-    Token public currency;
+    TokenManager public currencyManager;
+    IERC20 public currency;
     Registry public registry;
 
     /// ACL
@@ -50,10 +52,15 @@ contract Hamburger is AragonApp {
     string private constant ERROR_TOKEN_TRANSFER_FROM_PRICE = "FINANCE_TKN_TRANSFER_PRICE";
     string private constant ERROR_TOKEN_TRANSFER_FROM_REFUND = "FINANCE_TKN_TRANSFER_REFUND";
     string private constant ERROR_TOKEN_TRANSFER_FROM_REVERTED = "FINANCE_TKN_TRANSFER_FROM_REVERT";
+    string private constant ERROR_0x0_NOT_ALLOWED = "ERROR_0x0_NOT_ALLOWED";
+    string private constant ERROR_INVALID_NAME = "ERROR_INVALID_NAME";
+    string private constant ERROR_TM_BURN = "ERROR_TM_BURN";
 
-    function initialize(Token _currency, Registry _registry) onlyInit public {
+    /* function initialize(IERC20 _currency, Registry _registry) onlyInit public { */
+    function initialize(TokenManager _currencyManager, Registry _registry) onlyInit public {
         initialized();
-        currency = _currency;
+        currencyManager = _currencyManager;
+        currency = _currencyManager.token();
         registry = _registry;
     }
 
@@ -65,8 +72,9 @@ contract Hamburger is AragonApp {
      */
     function buy(uint256 _tokenId, uint256 _price, string _data, uint256 _credit) external {
         Asset storage asset = assets[_tokenId];
-        if(asset.owner != address(this))
+        if(asset.owner != address(this)) {
           payTax(_tokenId);
+        }
 
         _transferFrom(asset.owner, msg.sender, _tokenId);
         // require min balance of 1 day of tax
@@ -89,8 +97,7 @@ contract Hamburger is AragonApp {
         }
         if(amount > 0){
           asset.balance = asset.balance.sub(amount);
-          // send to 0 == burn
-          require(currency.transfer(address(0), amount), ERROR_TOKEN_TRANSFER_FROM_TAX);
+          currencyManager.burn(address(this), amount);
         }
         asset.lastPaymentDate = getTimestamp64();
     }
@@ -122,7 +129,7 @@ contract Hamburger is AragonApp {
           require(username != bytes32(0), USER_NOT_REGISTERED);
         }
         require(asset.active == true, NO_ACTIVE_ASSET);
-        require(_to != address(0));
+        require(_to != address(0), ERROR_0x0_NOT_ALLOWED);
         require(_from == asset.owner, NOT_OWNER);
 
         // current owner can transfer
@@ -141,8 +148,8 @@ contract Hamburger is AragonApp {
 
     function _reclaim(uint256 _tokenId) internal {
         Asset storage asset = assets[_tokenId];
-        emit Transfer(asset.owner, this, _tokenId);
-        asset.owner = this;
+        emit Transfer(asset.owner, address(this), _tokenId);
+        asset.owner = address(this);
         delete asset.price;
         emit Price(_tokenId, asset.price);
         delete asset.data;
@@ -216,7 +223,7 @@ contract Hamburger is AragonApp {
         if(_onlyIfSelfOwned)
           require(msg.sender == asset.owner, NOT_OWNER);
 
-        require(currency.transferFrom(msg.sender, this, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED);
+        require(currency.transferFrom(msg.sender, address(this), _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED);
         asset.balance = asset.balance.add(_amount);
         emit Balance(_tokenId, asset.balance);
     }
@@ -242,14 +249,16 @@ contract Hamburger is AragonApp {
      * @param _tax Tax
      */
     function mint(string _name, uint8 _tax, bool requireReg) auth(COMMONS_ROLE) external {
+        require(bytes(_name).length != 0, ERROR_INVALID_NAME);
         uint _tokenId = assetsCount++;
         Asset storage asset = assets[_tokenId];
         require(asset.active == false, ACTIVE_ASSET_EXISTS);
         asset.active = true;
         asset.requireReg = requireReg;
+        asset.owner = address(this);
         asset.tax = _tax;
         asset.name = _name;
-        emit Transfer(address(0), this, _tokenId);
+        emit Transfer(address(0), address(this), _tokenId);
     }
 
     /**

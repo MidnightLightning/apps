@@ -9,6 +9,7 @@
 	"scripts": {
 		"publish:patch": "lerna run publish:patch",
 		"publish:minor": "lerna run publish:minor",
-		"publish:major": "lerna run publish:major"
+		"publish:major": "lerna run publish:major",
+		"compile": "lerna run compile"
 	}
 }

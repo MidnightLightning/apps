@@ -100,7 +100,7 @@ export default class App extends React.Component {
 
     console.log(cid, ctype, value)
 
-    let tokenAddress = await this.props.app.call('token').toPromise()
+    let tokenAddress = await this.props.app.call('currency').toPromise()
 
     console.log(tokenAddress)
 

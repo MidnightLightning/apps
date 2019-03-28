@@ -3,7 +3,7 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 
-import "@daonuts/token/contracts/Token.sol";
+import "@daonuts/token/contracts/IERC20.sol";
 import "@daonuts/registry/contracts/Registry.sol";
 
 contract Tipping is AragonApp {
@@ -26,16 +26,16 @@ contract Tipping is AragonApp {
     string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
     string private constant NOTHING_TO_CLAIM = "NOTHING_TO_CLAIM";
 
-    Token public token;
+    IERC20 public currency;
     Registry public registry;
 
     event Tip(bytes32 indexed fromName, bytes32 indexed toName, uint amount, ContentType ctype, uint40 cid);
     event Claim(bytes32 indexed toName, uint balance);
 
-    function initialize(Token _token, Registry _registry) onlyInit public {
+    function initialize(IERC20 _currency, Registry _registry) onlyInit public {
         initialized();
 
-        token = _token;
+        currency = _currency;
         registry = _registry;
     }
 
@@ -53,17 +53,17 @@ contract Tipping is AragonApp {
         uint256 balance = balances[toName];
         require( balance > 0, NOTHING_TO_CLAIM );
         delete balances[toName];
-        require( token.transfer(_owner, balance), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
+        require( currency.transfer(_owner, balance), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
         emit Claim(toName, balance);
     }
 
     function tip(bytes32 _toName, uint _amount, ContentType _ctype, uint40 _cid) external {
         address to = registry.usernameToOwner(_toName);
         if(to == 0x0) {
-            require( token.transferFrom(msg.sender, this, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
+            require( currency.transferFrom(msg.sender, this, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
             balances[_toName] = balances[_toName].add(_amount);
         } else {
-            require( token.transferFrom(msg.sender, to, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
+            require( currency.transferFrom(msg.sender, to, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
         }
         bytes32 fromName = registry.ownerToUsername(msg.sender);
         emit Tip(fromName, _toName, _amount, _ctype, _cid);

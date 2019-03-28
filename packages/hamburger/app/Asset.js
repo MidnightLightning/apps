@@ -39,13 +39,14 @@ export default class Asset extends React.Component {
             <span>{web3.toAscii(this.props.name)}</span>
           </Label>
           <Label>
-            <Text>{this.props.isOwner ? "You own this asset" : `Owner is: ${this.props.owner}`}</Text>
+            <Text>{this.props.isOwner ? "You own this asset" : `Owner is: ${this.props.owner.slice(0,10)}...`}</Text>
           </Label>
 
           <p>tax: {this.props.tax}% / day</p>
           <p>price: {web3.toBigNumber(this.props.price).div("1e+18").toFixed()}</p>
           <p>balance: {web3.toBigNumber(this.props.balance).div("1e+18").toFixed()}</p>
           <p>data: {this.props.data}</p>
+          <p>reg required: {this.props.requireReg}</p>
         </Content>
         <Footer>
           <Button mode="outline" onClick={this.delete} emphasis="negative">Delete</Button>

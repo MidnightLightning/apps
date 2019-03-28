@@ -11,7 +11,7 @@ import "@aragon/os/contracts/lib/math/Math.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
-import "@daonuts/token/contracts/Token.sol";
+import "@daonuts/token/contracts/IERC20.sol";
 
 
 contract KarmaCapVoting is IForwarder, AragonApp {
@@ -50,8 +50,8 @@ contract KarmaCapVoting is IForwarder, AragonApp {
         mapping (address => VoterState) voters;
     }
 
-    Token public token;
-    Token public karma;
+    IERC20 public token;
+    IERC20 public karma;
     uint64 public supportRequiredPct;
     uint64 public minAcceptQuorumPct;
     uint64 public voteTime;
@@ -73,15 +73,15 @@ contract KarmaCapVoting is IForwarder, AragonApp {
 
     /**
     * @notice Initialize Voting app with `_token.symbol(): string` for governance, minimum support of `@formatPct(_supportRequiredPct)`%, minimum acceptance quorum of `@formatPct(_minAcceptQuorumPct)`%, and a voting duration of `@transformTime(_voteTime)`
-    * @param _token Token Address that will be used as governance token
-    * @param _karma Token Address that will be used as karma token
+    * @param _token IERC20 Address that will be used as governance token
+    * @param _karma IERC20 Address that will be used as governance karma
     * @param _supportRequiredPct Percentage of yeas in casted votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _minAcceptQuorumPct Percentage of yeas in total possible votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _voteTime Seconds that a vote will be open for token holders to vote (unless enough yeas or nays have been cast to make an early decision)
     */
     function initialize(
-        Token _token,
-        Token _karma,
+        IERC20 _token,
+        IERC20 _karma,
         uint64 _supportRequiredPct,
         uint64 _minAcceptQuorumPct,
         uint64 _voteTime

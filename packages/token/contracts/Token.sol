@@ -23,6 +23,9 @@ contract Token is IERC20, Controlled {
     string private constant ERROR_TRANSFERS_DISABLED = "ERROR_TRANSFERS_DISABLED";
     string private constant ERROR_CONTROLLER_ON_TRANSFER_FAIL = "ERROR_CONTROLLER_ON_TRANSFER_FAIL";
     string private constant ERROR_CONTROLLER_ON_APPROVE_FAIL = "ERROR_CONTROLLER_ON_APPROVE_FAIL";
+    string private constant ERROR_CONTROLLER_PROXY_PAY_FAIL = "ERROR_CONTROLLER_PROXY_PAY_FAIL";
+    string private constant ERROR_0x0_NOT_ALLOWED = "ERROR_0x0_NOT_ALLOWED";
+    string private constant ERROR_IS_NOT_CONTRACT = "ERROR_IS_NOT_CONTRACT";
 
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
 
@@ -37,9 +40,9 @@ contract Token is IERC20, Controlled {
     ///  set to 0, then the `proxyPayment` method is called which relays the
     ///  ether and creates tokens as described in the token controller contract
     function () external payable {
-        require(isContract(controller));
+        require(isContract(controller), ERROR_IS_NOT_CONTRACT);
         // Adding the ` == true` makes the linter shut up so...
-        require(ITokenController(controller).proxyPayment.value(msg.value)(msg.sender) == true);
+        require(ITokenController(controller).proxyPayment.value(msg.value)(msg.sender) == true, ERROR_CONTROLLER_PROXY_PAY_FAIL);
     }
 
     /**
@@ -74,48 +77,6 @@ contract Token is IERC20, Controlled {
      */
     function allowance(address owner, address spender) public view returns (uint256) {
         return _allowed[owner][spender];
-    }
-
-    /**
-     * @dev Internal function that mints an amount of the token and assigns it to
-     * an account. This encapsulates the modification of balances such that the
-     * proper events are emitted.
-     * @param account The account that will receive the created tokens.
-     * @param value The amount that will be created.
-     */
-    function _mint(address account, uint256 value) internal {
-        require(account != address(0));
-
-        _totalSupply = _totalSupply.add(value);
-        _balances[account] = _balances[account].add(value);
-        emit Transfer(address(0), account, value);
-    }
-
-    /**
-     * @dev Internal function that burns an amount of the token of a given
-     * account.
-     * @param account The account whose tokens will be burnt.
-     * @param value The amount that will be burnt.
-     */
-    function _burn(address account, uint256 value) internal {
-        require(account != address(0));
-
-        _totalSupply = _totalSupply.sub(value);
-        _balances[account] = _balances[account].sub(value);
-        emit Transfer(account, address(0), value);
-    }
-
-    /**
-     * @dev Internal function that burns an amount of the token of a given
-     * account, deducting from the sender's allowance for said account. Uses the
-     * internal burn function.
-     * Emits an Approval event (reflecting the reduced allowance).
-     * @param account The account whose tokens will be burnt.
-     * @param value The amount that will be burnt.
-     */
-    function _burnFrom(address account, uint256 value) internal {
-        _burn(account, value);
-        _approve(account, msg.sender, _allowed[account][msg.sender].sub(value));
     }
 
     /**
@@ -198,7 +159,7 @@ contract Token is IERC20, Controlled {
             require(ITokenController(controller).onTransfer(_from, _to, _amount) == true, ERROR_CONTROLLER_ON_TRANSFER_FAIL);
         }
 
-        require(_to != address(0));
+        require(_to != address(0), ERROR_0x0_NOT_ALLOWED);
 
         _balances[_from] = _balances[_from].sub(_amount);
         _balances[_to] = _balances[_to].add(_amount);
@@ -218,11 +179,53 @@ contract Token is IERC20, Controlled {
             require(ITokenController(controller).onApprove(_owner, _spender, _amount) == true, ERROR_CONTROLLER_ON_APPROVE_FAIL);
         }
 
-        require(_spender != address(0));
-        require(_owner != address(0));
+        require(_spender != address(0), ERROR_0x0_NOT_ALLOWED);
+        require(_owner != address(0), ERROR_0x0_NOT_ALLOWED);
 
         _allowed[_owner][_spender] = _amount;
         emit Approval(_owner, _spender, _amount);
+    }
+
+    /**
+     * @dev Internal function that mints an amount of the token and assigns it to
+     * an account. This encapsulates the modification of balances such that the
+     * proper events are emitted.
+     * @param account The account that will receive the created tokens.
+     * @param value The amount that will be created.
+     */
+    function _mint(address account, uint256 value) internal {
+        require(account != address(0), ERROR_0x0_NOT_ALLOWED);
+
+        _totalSupply = _totalSupply.add(value);
+        _balances[account] = _balances[account].add(value);
+        emit Transfer(address(0), account, value);
+    }
+
+    /**
+     * @dev Internal function that burns an amount of the token of a given
+     * account.
+     * @param account The account whose tokens will be burnt.
+     * @param value The amount that will be burnt.
+     */
+    function _burn(address account, uint256 value) internal {
+        require(account != address(0), ERROR_0x0_NOT_ALLOWED);
+
+        _totalSupply = _totalSupply.sub(value);
+        _balances[account] = _balances[account].sub(value);
+        emit Transfer(account, address(0), value);
+    }
+
+    /**
+     * @dev Internal function that burns an amount of the token of a given
+     * account, deducting from the sender's allowance for said account. Uses the
+     * internal burn function.
+     * Emits an Approval event (reflecting the reduced allowance).
+     * @param account The account whose tokens will be burnt.
+     * @param value The amount that will be burnt.
+     */
+    function _burnFrom(address account, uint256 value) internal {
+        _burn(account, value);
+        _approve(account, msg.sender, _allowed[account][msg.sender].sub(value));
     }
 
     /// @dev Internal function to determine if an address is a contract
