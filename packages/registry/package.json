@@ -48,10 +48,11 @@
 		"build:app": "parcel build app/index.html -d dist/ --public-url '.' --no-cache",
 		"build:script": "parcel build app/script.js -d dist/ --no-cache",
 		"build": "npm run sync-assets && npm run build:app && npm run build:script",
-		"publish:patch": "aragon apm publish patch",
-		"publish:minor": "aragon apm publish minor",
-		"publish:major": "aragon apm publish major",
+		"publish:patch": "./scripts/publish.sh default patch",
+		"publish:minor": "./scripts/publish.sh default minor",
+		"publish:major": "./scripts/publish.sh default major",
 		"versions": "aragon apm versions",
-		"clean": "rm -rf build && rm -rf dist"
+		"clean": "rm -rf build && rm -rf dist",
+		"deploy:local": "truffle compile --all; export ENS=0x5f6f7e8cc7346a11ca2def8f827b7a0b612c56a1; export OWNER=0xb4124cEB3451635DAcedd11767f004d8a28c6eE7; truffle exec --network development scripts/deploy.js"
 	}
 }

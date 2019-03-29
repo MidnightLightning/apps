@@ -3,8 +3,11 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/common/IForwarder.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
+import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
+import "@aragon/os/contracts/ens/ENSConstants.sol";
 
-contract Registry is AragonApp, IForwarder {
+contract Registry is AragonApp, IForwarder, ENSConstants {
     using SafeMath for uint256;
 
     /// Events
@@ -13,13 +16,23 @@ contract Registry is AragonApp, IForwarder {
     event Deregistered(address indexed owner, bytes32 indexed username);
 
     /// State
+    AbstractENS public ens;
+    PublicResolver public resolver;
+
     bytes32[] public roots;
     mapping(address => bytes32) public ownerToUsername;
     mapping(bytes32 => address) public usernameToOwner;
     mapping(bytes32 => bool) public activeRegPeriod;
 
+    /// ENS
+    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
+    bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c;
+    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
+    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
+
     /// ACL
-    bytes32 constant public START_REGISTRATION_PERIOD = keccak256("START_REGISTRATION_PERIOD");
+    /* bytes32 constant public START_REGISTRATION_PERIOD = keccak256("START_REGISTRATION_PERIOD"); */
+    bytes32 constant public START_REGISTRATION_PERIOD = 0xd31f4ba181fa04f6e556e75747124c08760a53dec98821ac56200ec037aa2bb7;
 
     // Errors
     string private constant REGISTRATION_EXISTS = "REGISTRATION_EXISTS";
@@ -28,9 +41,17 @@ contract Registry is AragonApp, IForwarder {
     string private constant REGISTRATION_NOT_FOUND = "REGISTRATION_NOT_FOUND";
     string private constant INVALID = "INVALID";
     string private constant ERROR_CAN_NOT_FORWARD = "REGISTRY_CAN_NOT_FORWARD";
+    string private constant ERROR_NO_NODE_OWNERSHIP = "NO_NODE_OWNERSHIP";
 
-    function initialize(bytes32 _root) onlyInit public {
+    function initialize(AbstractENS _ens, bytes32 _root) onlyInit public {
         initialized();
+
+        ens = _ens;
+        resolver = PublicResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+
+        // We need ownership to create subnodes
+        /* require(ens.owner(DAONUTS_NODE) == address(this), ERROR_NO_NODE_OWNERSHIP); */
+
         _addRoot(_root);
     }
 
@@ -65,12 +86,23 @@ contract Registry is AragonApp, IForwarder {
     function _register(address _owner, bytes32 _username) internal {
         ownerToUsername[_owner] = _username;
         usernameToOwner[_username] = _owner;
+
+        bytes32 label = keccak256(_username);
+        ens.setSubnodeOwner(DAONUTS_NODE, label, this);
+        bytes32 node = keccak256(abi.encodePacked(DAONUTS_NODE, label));
+        resolver.setAddr(node, _owner);
+
         emit Registered(_owner, _username);
     }
 
     function _deregister(address _owner, bytes32 _username) internal {
         delete ownerToUsername[_owner];
         delete usernameToOwner[_username];
+
+        bytes32 label = keccak256(_username);
+        bytes32 node = keccak256(abi.encodePacked(DAONUTS_NODE, label));
+        resolver.setAddr(node, address(0));
+
         emit Deregistered(_owner, _username);
     }
 

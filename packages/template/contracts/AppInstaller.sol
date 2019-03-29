@@ -5,7 +5,7 @@ import "@aragon/os/contracts/acl/ACL.sol";
 import "@aragon/os/contracts/apm/APMNamehash.sol";
 import "@aragon/os/contracts/apm/Repo.sol";
 import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
-import "@aragon/os/contracts/lib/ens/ENS.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
 
 import "@daonuts/distribution/contracts/Distribution.sol";
 import "@daonuts/hamburger/contracts/Hamburger.sol";
@@ -17,18 +17,17 @@ import "@daonuts/token-manager/contracts/TokenManager.sol";
 
 contract AppInstaller is APMNamehash {
 
-    ENS ens;
+    AbstractENS ens;
     uint64 constant PCT = 10 ** 16;
     address constant ANY_ENTITY = address(-1);
-    /* function install(Kernel _dao, ENS _ens, Token _currency, Token _karma, bytes32 _regRoot, bytes32 _distRoot) external { */
-    function install(Kernel _dao, ENS _ens, bytes32 _regRoot, bytes32 _distRoot) external {
+    function install(Kernel _dao, AbstractENS _ens, bytes32 _regRoot, bytes32 _distRoot) external {
         ens = _ens;
         Token currency = new Token("Currency", 18, "NUTS", true);
         Token karma = new Token("Karma", 18, "KARM", false);
         (TokenManager currencyManager) = installCurrencyManager(_dao, currency);
         (TokenManager karmaManager) = installKarmaManager(_dao, karma);
         KarmaCapVoting voting = installVoting(_dao, currency, karma);
-        Registry registry = installRegistry(_dao, _regRoot);
+        Registry registry = installRegistry(_dao, _ens, _regRoot);
         Distribution distribution = installDistribution(_dao, currencyManager, karmaManager, registry, _distRoot);
         Hamburger hamburger = installHamburger(_dao, currencyManager, registry);
         installTipping(_dao, currency, registry);
@@ -53,10 +52,10 @@ contract AppInstaller is APMNamehash {
         voting.initialize(_currency, _karma, 50 * PCT, 20 * PCT, 1 days);
     }
 
-    function installRegistry(Kernel _dao, bytes32 _regRoot) internal returns (Registry registry) {
+    function installRegistry(Kernel _dao, AbstractENS _ens, bytes32 _regRoot) internal returns (Registry registry) {
         bytes32 registryAppId = apmNamehash("daonuts-registry");
         registry = Registry(_dao.newAppInstance(registryAppId, latestVersionAppBase(registryAppId)));
-        registry.initialize(_regRoot);
+        registry.initialize(_ens, _regRoot);
     }
 
     function installTipping(Kernel _dao, Token _currency, Registry _registry) internal returns (Tipping tipping) {
