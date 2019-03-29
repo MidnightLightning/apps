@@ -7,9 +7,9 @@
   "dependencies": {
   },
 	"scripts": {
-		"publish:patch": "lerna run publish:patch",
-		"publish:minor": "lerna run publish:minor",
-		"publish:major": "lerna run publish:major",
-		"compile": "lerna run compile"
+		"publish:local:major": "./packages/template/scripts/publish_apps.sh",
+		"template": "./packages/template/scripts/use_template.sh",
+		"compile": "lerna run compile",
+    "clean": "lerna run clean"
 	}
 }

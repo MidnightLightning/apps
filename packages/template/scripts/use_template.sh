@@ -28,3 +28,9 @@ read TEMPLATE
 aragon apm publish major $TEMPLATE --environment $ENV
 
 dao new --template daonuts-template --fn newInstance --fn-args $REG_ROOT $DIST_ROOT $APP_INSTALLER --environment $ENV
+
+echo What is the created DAO address?
+read DAO
+
+echo opening http://localhost:3000/\#/$DAO
+xdg-open http://localhost:3000/\#/$DAO
