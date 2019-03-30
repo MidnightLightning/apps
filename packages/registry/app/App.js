@@ -29,7 +29,7 @@ import reg03 from '../registrations/post/0x8476930a.json'
 
 export default class App extends React.Component {
 
-  state = {newRoot:'', claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
+  state = {newRoot:'', ownsRootNode: false, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
@@ -60,6 +60,7 @@ export default class App extends React.Component {
   }
 
   init = async () => {
+    this.checkRootNodeOwner()
     this.getUsername(this.props.userAccount)
     let rootsCount = await this.props.app.call('getRootsCount').toPromise()
     this.getRoots(rootsCount)
@@ -80,6 +81,11 @@ export default class App extends React.Component {
     console.log("getUsername")
     let username = await this.props.app.call('ownerToUsername', account).toPromise()
     if(username) this.setState({username: web3.toUtf8(username)})
+  }
+
+  checkRootNodeOwner = async () => {
+    let ownsRootNode = await this.props.app.call('ownsRootNode').toPromise()
+    this.setState({ownsRootNode})
   }
 
   handleNameCheckChange = async (event) => {
@@ -150,6 +156,9 @@ export default class App extends React.Component {
           <br />
           <p>Your account: {this.props.userAccount}</p>
           <hr />
+          {this.state.ownsRootNode === false && <Info.Alert title="daonuts.eth">
+            Registry does not own daonuts.eth. Registration tx will fail.
+          </Info.Alert>}
           <br />
           <Text size="xlarge">Accepted merkle roots:</Text>
           <RootList roots={this.state.roots} register={this.register} registrations={this.registrations} userAccount={this.props.userAccount} username={this.state.username} />

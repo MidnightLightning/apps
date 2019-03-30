@@ -5,7 +5,7 @@ import "@aragon/os/contracts/acl/ACL.sol";
 import "@aragon/os/contracts/apm/APMNamehash.sol";
 import "@aragon/os/contracts/apm/Repo.sol";
 import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
-import "@aragon/os/contracts/lib/ens/ENS.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
 
 import "@daonuts/distribution/contracts/Distribution.sol";
 import "@daonuts/hamburger/contracts/Hamburger.sol";
@@ -17,11 +17,18 @@ import "@daonuts/token-manager/contracts/TokenManager.sol";
 
 contract AppInstaller is APMNamehash {
 
-    ENS ens;
+    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
+    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
+    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
+    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
+
+    string private constant APP_INSTALLER_NOT_OWNER = "APP_INSTALLER_NOT_OWNER";
+
+    AbstractENS ens;
     uint64 constant PCT = 10 ** 16;
     address constant ANY_ENTITY = address(-1);
-    /* function install(Kernel _dao, ENS _ens, Token _currency, Token _karma, bytes32 _regRoot, bytes32 _distRoot) external { */
-    function install(Kernel _dao, ENS _ens, bytes32 _regRoot, bytes32 _distRoot) external {
+
+    function install(Kernel _dao, AbstractENS _ens, bytes32 _regRoot, bytes32 _distRoot) external {
         ens = _ens;
         Token currency = new Token("Currency", 18, "NUTS", true);
         Token karma = new Token("Karma", 18, "KARM", false);
@@ -56,7 +63,7 @@ contract AppInstaller is APMNamehash {
     function installRegistry(Kernel _dao, bytes32 _regRoot) internal returns (Registry registry) {
         bytes32 registryAppId = apmNamehash("daonuts-registry");
         registry = Registry(_dao.newAppInstance(registryAppId, latestVersionAppBase(registryAppId)));
-        registry.initialize(_regRoot);
+        registry.initialize(ens, _regRoot);
     }
 
     function installTipping(Kernel _dao, Token _currency, Registry _registry) internal returns (Tipping tipping) {

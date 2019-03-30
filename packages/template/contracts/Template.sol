@@ -12,20 +12,20 @@ pragma solidity ^0.4.24;
 
 import "@aragon/os/contracts/factory/DAOFactory.sol";
 import "@aragon/os/contracts/apm/Repo.sol";
-import "@aragon/os/contracts/lib/ens/ENS.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
 import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
 import "@aragon/os/contracts/apm/APMNamehash.sol";
 
 import "./IAppInstaller.sol";
 
 contract TemplateBase is APMNamehash {
-    ENS public ens;
+    AbstractENS public ens;
     DAOFactory public fac;
 
     event DeployInstance(address dao);
     event InstalledApp(address appProxy, bytes32 appId);
 
-    constructor(DAOFactory _fac, ENS _ens) {
+    constructor(DAOFactory _fac, AbstractENS _ens) {
         ens = _ens;
 
         // If no factory is passed, get it from on-chain bare-kit
@@ -47,7 +47,7 @@ contract TemplateBase is APMNamehash {
 
 contract Template is TemplateBase {
 
-    constructor(ENS ens) TemplateBase(DAOFactory(0), ens) {
+    constructor(AbstractENS ens) TemplateBase(DAOFactory(0), ens) {
     }
 
     function newInstance(bytes32 _regRoot, bytes32 _distRoot, IAppInstaller _installer) {
