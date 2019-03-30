@@ -21,7 +21,7 @@ cd ~/Projects/daonuts/apps/packages/karma-cap-voting
 aragon apm publish major --environment $ENV
 
 cd ~/Projects/daonuts/apps/packages/registry
-npm run publish:major
+aragon apm publish major --environment $ENV
 
 cd ~/Projects/daonuts/apps/packages/tipping
 aragon apm publish major --environment $ENV

@@ -26,13 +26,15 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
 
     /// ENS
     /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
-    bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c;
+    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
     /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
     bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
 
     /// ACL
     /* bytes32 constant public START_REGISTRATION_PERIOD = keccak256("START_REGISTRATION_PERIOD"); */
     bytes32 constant public START_REGISTRATION_PERIOD = 0xd31f4ba181fa04f6e556e75747124c08760a53dec98821ac56200ec037aa2bb7;
+    /* bytes32 constant public TRANSFER_ROOT_NODE = keccak256("TRANSFER_ROOT_NODE"); */
+    bytes32 constant public TRANSFER_ROOT_NODE = 0x371d57b5d5e36ffacd760261ee1986c14c5a44484f6cd32d970413d31467313e;
 
     // Errors
     string private constant REGISTRATION_EXISTS = "REGISTRATION_EXISTS";
@@ -41,7 +43,7 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
     string private constant REGISTRATION_NOT_FOUND = "REGISTRATION_NOT_FOUND";
     string private constant INVALID = "INVALID";
     string private constant ERROR_CAN_NOT_FORWARD = "REGISTRY_CAN_NOT_FORWARD";
-    string private constant ERROR_NO_NODE_OWNERSHIP = "NO_NODE_OWNERSHIP";
+    string private constant ERROR_REGISTRY_NOT_OWNER = "REGISTRY_NOT_OWNER";
 
     function initialize(AbstractENS _ens, bytes32 _root) onlyInit public {
         initialized();
@@ -50,7 +52,7 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
         resolver = PublicResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
 
         // We need ownership to create subnodes
-        /* require(ens.owner(DAONUTS_NODE) == address(this), ERROR_NO_NODE_OWNERSHIP); */
+        /* require(ens.owner(DAONUTS_NODE) == address(this), ERROR_REGISTRY_NOT_OWNER); */
 
         _addRoot(_root);
     }
@@ -167,4 +169,19 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
     function isForwarder() public pure returns (bool) {
         return true;
     }
+
+    function ownsRootNode() public view returns (bool) {
+      return ens.owner(DAONUTS_NODE) == address(this);
+    }
+
+    /**
+     * Transfers ownership of a node to a new address. May only be called by the current
+     * owner of the node.
+     * @param node The node to transfer ownership of.
+     * @param owner The address of the new owner.
+     */
+     // Can't do this by vote because msg.sender becomes the voting app
+    /* function transferRootNode(address owner) auth(TRANSFER_ROOT_NODE) public {
+        ens.setOwner(DAONUTS_NODE, owner);
+    } */
 }

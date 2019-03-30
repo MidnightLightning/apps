@@ -7,6 +7,7 @@ const globalArtifacts = this.artifacts // Not injected unless called directly vi
 const globalWeb3 = this.web3 // Not injected unless called directly via truffle
 const defaultOwner = process.env.OWNER
 const defaultENSAddress = process.env.ENS
+const defaultRegistryAddress = process.env.REGISTRY
 
 const tld = namehash('eth')
 const label = '0x'+keccak256('daonuts')
@@ -22,6 +23,7 @@ module.exports = async (
     artifacts = globalArtifacts,
     web3 = globalWeb3,
     ensAddress = defaultENSAddress,
+    registryAddress = defaultRegistryAddress,
     owner = defaultOwner,
     verbose = true
   } = {}
@@ -30,26 +32,32 @@ module.exports = async (
     if (verbose) { console.log(...args) }
   }
 
+  if(!owner) console.log("missing owner")
+  if(!ensAddress) console.log("missing ens address")
+  if(!registryAddress) console.log("missing registry address")
+
   const accounts = await getAccounts(web3)
 
   log(`Deploying daonuts.eth with ENS: ${ensAddress} and owner: ${owner}`)
-  const Registry = artifacts.require('Registry')
   const ENS = artifacts.require('AbstractENS')
+  const REGISTRY = artifacts.require('Registry')
 
   const ens = await ENS.at(ensAddress)
+  console.log("after ens")
   const publicResolver = await ens.resolver(namehash('resolver.eth'))
-  const daonutsReg = await Registry.new()
-  await logDeploy(daonutsReg, { verbose })
+  console.log("after publicResolver")
+  const registry = await REGISTRY.at(registryAddress)
+  console.log("after registry")
 
-  log('assigning ENS name to daonutsReg')
+  log('assigning ENS name to registry')
 
   if (await ens.owner(node) === accounts[0]) {
-    log('Transferring name ownership from deployer to daonutsReg')
-    await ens.setOwner(node, daonutsReg.address)
+    log('Transferring name ownership from deployer to registry')
+    await ens.setOwner(node, registry.address)
   } else {
     log('Creating subdomain and assigning it to daonutsReg')
     try {
-      await ens.setSubnodeOwner(tld, label, daonutsReg.address)
+      await ens.setSubnodeOwner(tld, label, registry.address)
     } catch (err) {
       console.error(
         `Error: could not set the owner of 'aragonid.eth' on the given ENS instance`,
@@ -57,15 +65,8 @@ module.exports = async (
       )
       throw err
     }
-    console.log(await ens.owner(node), daonutsReg.address)
-    console.log(await ens.owner(node) === daonutsReg.address)
+    let nodeOwner = await ens.owner(node)
+    console.log(nodeOwner, registry.address)
+    console.log(await ens.owner(node) === registry.address)
   }
-
-  // if (owner) {
-  //   log('assigning owner name')
-  //   await daonutsReg.register('0x'+keccak256('owner'), owner)
-  // }
-
-  log('===========')
-  log('Deployed Registry:', daonutsReg.address)
 }
