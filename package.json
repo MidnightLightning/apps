@@ -7,7 +7,8 @@
   "dependencies": {
   },
 	"scripts": {
-		"publish:local:major": "./packages/template/scripts/publish_apps.sh",
+		"publish_apps": "./packages/template/scripts/publish_apps.sh",
+		"publish_apps:rinkeby": "./packages/template/scripts/publish_apps.sh staging",
 		"template": "./packages/template/scripts/use_template.sh",
 		"compile": "lerna run compile",
     "clean": "lerna run clean"

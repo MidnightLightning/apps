@@ -6,7 +6,6 @@
 		"@aragon/client": "^1.1.1",
 		"@aragon/os": "^4.1.0",
 		"@aragon/ui": "^0.33.0",
-		"@daonuts/common": "^0.0.0",
 		"@daonuts/distribution": "^0.0.1",
 		"@daonuts/hamburger": "^0.0.1",
 		"@daonuts/karma-cap-voting": "^0.0.1",
@@ -22,8 +21,7 @@
 		"react-dom": "^16.8.5",
 		"request-promise": "^4.2.4",
 		"styled-components": "^4.2.0",
-		"web3": "^1.0.0-beta.50",
-		"yargs": "^13.2.2"
+		"web3": "^1.0.0-beta.50"
 	},
 	"keywords": [],
 	"devDependencies": {
@@ -35,7 +33,9 @@
 		"@babel/polyfill": "^7.4.0",
 		"@babel/preset-env": "^7.4.2",
 		"babel-plugin-styled-components": "^1.10.0",
-		"parcel-bundler": "^1.12.3"
+		"homedir": "^0.6.0",
+		"parcel-bundler": "^1.12.3",
+		"yargs": "^13.2.2"
 	},
 	"scripts": {
 		"start": "npm run start:aragon:ipfs",
