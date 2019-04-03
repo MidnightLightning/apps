@@ -23,9 +23,7 @@ const AppContainer = styled(AragonApp)`
   justify-content: center;
 `
 
-import reg01 from '../registrations/post/0xbbdacbe4.json'
-import reg02 from '../registrations/post/0xc3273767.json'
-import reg03 from '../registrations/post/0x8476930a.json'
+import reg01 from '../registrations/post/0x8476930a.json'
 
 export default class App extends React.Component {
 
@@ -34,9 +32,7 @@ export default class App extends React.Component {
   lastObservable = {}
 
   registrations = {
-    "0xbbdacbe4": reg01,
-    "0xc3273767": reg02,
-    "0x8476930a": reg03
+    "0x8476930a": reg01
   }
 
   initDone = false
