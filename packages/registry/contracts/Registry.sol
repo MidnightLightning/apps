@@ -21,7 +21,7 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
 
     bytes32[] public roots;
     mapping(address => bytes32) public ownerToUsername;
-    mapping(bytes32 => address) public usernameToOwner;
+    /* mapping(bytes32 => address) public usernameToOwner; */
     mapping(bytes32 => bool) public activeRegPeriod;
 
     /// ENS
@@ -51,9 +51,6 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
         ens = _ens;
         resolver = PublicResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
 
-        // We need ownership to create subnodes
-        /* require(ens.owner(DAONUTS_NODE) == address(this), ERROR_REGISTRY_NOT_OWNER); */
-
         _addRoot(_root);
     }
 
@@ -74,7 +71,8 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
 
     function registerSelf(bytes32 _root, bytes32 _username, bytes32[] _proof) external {
         require( activeRegPeriod[_root] == true, NO_ACTIVE_REGISTRATION_PERIOD );
-        require( ownerToUsername[msg.sender] == 0x0 && usernameToOwner[_username] == 0x0, REGISTRATION_EXISTS );
+        bytes32 node = usernameNode(_username);
+        require( ownerToUsername[msg.sender] == 0x0 && resolver.addr(node) == 0x0, REGISTRATION_EXISTS );
         require( validate(_root, msg.sender, _username, _proof), INVALID );
         _register(msg.sender, _username);
     }
@@ -85,9 +83,14 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
         _deregister(msg.sender, username);
     }
 
+    function usernameNode(bytes32 _username) public view returns (bytes32 node) {
+        bytes32 label = keccak256(_username);
+        node = keccak256(abi.encodePacked(DAONUTS_NODE, label));
+    }
+
     function _register(address _owner, bytes32 _username) internal {
         ownerToUsername[_owner] = _username;
-        usernameToOwner[_username] = _owner;
+        /* usernameToOwner[_username] = _owner; */
 
         bytes32 label = keccak256(_username);
         ens.setSubnodeOwner(DAONUTS_NODE, label, this);
@@ -99,10 +102,9 @@ contract Registry is AragonApp, IForwarder, ENSConstants {
 
     function _deregister(address _owner, bytes32 _username) internal {
         delete ownerToUsername[_owner];
-        delete usernameToOwner[_username];
+        /* delete usernameToOwner[_username]; */
 
-        bytes32 label = keccak256(_username);
-        bytes32 node = keccak256(abi.encodePacked(DAONUTS_NODE, label));
+        bytes32 node = usernameNode(_username);
         resolver.setAddr(node, address(0));
 
         emit Deregistered(_owner, _username);

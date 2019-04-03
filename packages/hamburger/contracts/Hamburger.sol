@@ -3,12 +3,15 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@aragon/os/contracts/lib/math/SafeMath64.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
+import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
+import "@aragon/os/contracts/ens/ENSConstants.sol";
 
 import "@daonuts/token-manager/contracts/TokenManager.sol";
 import "@daonuts/token/contracts/IERC20.sol";
 import "@daonuts/registry/contracts/Registry.sol";
 
-contract Hamburger is AragonApp {
+contract Hamburger is AragonApp, ENSConstants {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
@@ -34,9 +37,17 @@ contract Hamburger is AragonApp {
     /// State
     mapping(uint => Asset) public assets;
     uint public assetsCount;
+    AbstractENS public ens;
+    PublicResolver public resolver;
     TokenManager public currencyManager;
     IERC20 public currency;
     Registry public registry;
+
+    /// ENS
+    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
+    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
+    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
+    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
 
     /// ACL
     bytes32 constant public PURCHASE_ASSET_ROLE = keccak256("PURCHASE_ASSET_ROLE");
@@ -57,8 +68,11 @@ contract Hamburger is AragonApp {
     string private constant ERROR_TM_BURN = "ERROR_TM_BURN";
 
     /* function initialize(IERC20 _currency, Registry _registry) onlyInit public { */
-    function initialize(TokenManager _currencyManager, Registry _registry) onlyInit public {
+    function initialize(AbstractENS _ens, TokenManager _currencyManager, Registry _registry) onlyInit public {
         initialized();
+
+        ens = _ens;
+        resolver = PublicResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
         currencyManager = _currencyManager;
         currency = _currencyManager.token();
         registry = _registry;

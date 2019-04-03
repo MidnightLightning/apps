@@ -4,8 +4,10 @@ import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@daonuts/token-manager/contracts/TokenManager.sol";
 import "@daonuts/registry/contracts/Registry.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
+import "@aragon/os/contracts/ens/ENSConstants.sol";
 
-contract Distribution is AragonApp {
+contract Distribution is AragonApp, ENSConstants {
     using SafeMath for uint256;
 
     struct Distribution {
@@ -20,9 +22,17 @@ contract Distribution is AragonApp {
     /// State
     bytes32[] public roots;
     mapping(bytes32 => Distribution) public distributions;
+    AbstractENS public ens;
+    PublicResolver public resolver;
     TokenManager public tokenManager;
     TokenManager public karmaManager;
     Registry public registry;
+
+    /// ENS
+    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
+    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
+    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
+    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
 
     /// ACL
     bytes32 constant public START_DISTRIBUTION = keccak256("START_DISTRIBUTION");
@@ -34,9 +44,11 @@ contract Distribution is AragonApp {
     string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
     string private constant INVALID = "INVALID";
 
-    function initialize(TokenManager _tokenManager, TokenManager _karmaManager, Registry _registry, bytes32 _root) onlyInit public {
+    function initialize(AbstractENS _ens, TokenManager _tokenManager, TokenManager _karmaManager, Registry _registry, bytes32 _root) onlyInit public {
         initialized();
 
+        ens = _ens;
+        resolver = PublicResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
         tokenManager = _tokenManager;
         karmaManager = _karmaManager;
         registry = _registry;
@@ -60,11 +72,14 @@ contract Distribution is AragonApp {
     }
 
     function getOwner(bytes32 _username) public view returns (address) {
-      return registry.usernameToOwner(_username);
+        bytes32 node = usernameNode(_username);
+        return resolver.addr(node);
+        /* address recipient = registry.usernameToOwner(_username); */
+        /* return registry.usernameToOwner(_username); */
     }
 
     function getUsername(address _owner) public view returns (bytes32) {
-      return registry.ownerToUsername(_owner);
+        return registry.ownerToUsername(_owner);
     }
 
     /**
@@ -75,7 +90,9 @@ contract Distribution is AragonApp {
      * @param _award The award amount
      */
     function award(bytes32 _root, bytes32 _username, uint256 _award, bytes32[] _proof) external {
-        address recipient = registry.usernameToOwner(_username);
+        bytes32 node = usernameNode(_username);
+        /* address recipient = registry.usernameToOwner(_username); */
+        address recipient = resolver.addr(node);
         require( recipient != 0x0, USER_NOT_REGISTERED );
         require( distributions[_root].active == true, NO_ACTIVE_DISTRIBUTION );
         require( distributions[_root].claimed[_username] == false, USER_HAS_COLLECTED );
@@ -131,5 +148,10 @@ contract Distribution is AragonApp {
         }
 
         return hash == root;
+    }
+
+    function usernameNode(bytes32 _username) public view returns (bytes32 node) {
+        bytes32 label = keccak256(_username);
+        node = keccak256(abi.encodePacked(DAONUTS_NODE, label));
     }
 }

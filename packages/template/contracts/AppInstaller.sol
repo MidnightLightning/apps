@@ -45,13 +45,13 @@ contract AppInstaller is APMNamehash {
     function installDistribution(Kernel _dao, TokenManager _currencyManager, TokenManager _karmaManager, Registry _registry, bytes32 _distRoot) internal returns (Distribution distribution) {
         bytes32 distributionAppId = apmNamehash("daonuts-distribution");
         distribution = Distribution(_dao.newAppInstance(distributionAppId, latestVersionAppBase(distributionAppId)));
-        distribution.initialize(_currencyManager, _karmaManager, _registry, _distRoot);
+        distribution.initialize(ens, _currencyManager, _karmaManager, _registry, _distRoot);
     }
 
     function installHamburger(Kernel _dao, TokenManager _currencyManager, Registry _registry) internal returns (Hamburger hamburger) {
         bytes32 hamburgerAppId = apmNamehash("daonuts-hamburger");
         hamburger = Hamburger(_dao.newAppInstance(hamburgerAppId, latestVersionAppBase(hamburgerAppId)));
-        hamburger.initialize(_currencyManager, _registry);
+        hamburger.initialize(_ens, currencyManager, _registry);
     }
 
     function installVoting(Kernel _dao, Token _currency, Token _karma) internal returns (KarmaCapVoting voting) {
@@ -71,7 +71,7 @@ contract AppInstaller is APMNamehash {
         bytes32 tippingAppId = apmNamehash("daonuts-tipping");
         tipping = Tipping(_dao.newAppInstance(tippingAppId, latestVersionAppBase(tippingAppId)));
         tipping.initialize(_currency, _registry);
-        acl.createPermission(tipping, tipping, tipping.NONE(), tipping);
+        acl.createPermission(ens, tipping, tipping, tipping.NONE(), tipping);
     }
 
     function installCurrencyManager(Kernel _dao, Token _currency) internal returns(TokenManager currencyManager) {
