@@ -4,3 +4,4 @@
 **/build
 **/stash
 **/.secret*
+package-lock.json
