@@ -19,6 +19,7 @@
 		"openzeppelin-solidity": "^2.2.0",
 		"react": "^16.8.5",
 		"react-dom": "^16.8.5",
+    "react-linkify": "^0.2.2",
 		"request-promise": "^4.2.4",
 		"rxjs-compat": "^6.4.0",
 		"styled-components": "^4.2.0",

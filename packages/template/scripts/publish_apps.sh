@@ -18,7 +18,7 @@ cd ~/Projects/daonuts/apps/packages/hamburger
 aragon apm publish major --environment $ENV
 
 cd ~/Projects/daonuts/apps/packages/karma-cap-voting
-aragon apm publish major --environment $ENV
+aragon apm publish major --environment $ENV --debug
 
 cd ~/Projects/daonuts/apps/packages/registry
 aragon apm publish major --environment $ENV
