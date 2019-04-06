@@ -23,7 +23,8 @@ function buildTree(recipients, date){
   const recipientHashBuffers = recipients.map(u=>{
     // console.log(typeof u.award)
     let addressBuffer = utils.toBuffer(u.address)
-    let usernameBuffer = utils.setLengthRight(utils.toBuffer(u.username), 32)
+    // let usernameBuffer = utils.setLengthRight(utils.toBuffer(u.username), 32)
+    let usernameBuffer = utils.toBuffer(u.username)
     let hashBuffer = utils.keccak256(Buffer.concat([addressBuffer, usernameBuffer]))
     let hash = utils.bufferToHex(hashBuffer)
     // console.log(hash)

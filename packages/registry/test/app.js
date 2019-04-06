@@ -10,7 +10,7 @@ contract('Registry', (accounts) => {
       console.log("hash is:", hash)
       let addressHash = await registry.hashAddress("0xb4124cEB3451635DAcedd11767f004d8a28c6eE7")
       console.log("addressHash is:", addressHash)
-      let usernameHash = await registry.hashBytes32(username)
+      let usernameHash = await registry.hashString(username)
       console.log("usernameHash is:", usernameHash)
   })
 })

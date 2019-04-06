@@ -6,6 +6,7 @@
 		"@aragon/client": "^1.1.1",
 		"@aragon/os": "^4.1.0",
 		"@aragon/ui": "^0.33.0",
+		"@daonuts/common": "^0.0.0",
 		"@daonuts/hamburger": "^0.0.1",
 		"@daonuts/karma-cap-voting": "^0.0.1",
 		"@daonuts/registry": "^0.0.1",

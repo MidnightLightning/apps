@@ -34,7 +34,8 @@ async function parseCSV(date){
 function buildTree(recipients, date){
   const recipientHashBuffers = recipients.map(u=>{
     // console.log(typeof u.award)
-    let usernameBuffer = utils.setLengthRight(utils.toBuffer(u.username), 32)
+    // let usernameBuffer = utils.setLengthRight(utils.toBuffer(u.username), 32)
+    let usernameBuffer = utils.toBuffer(u.username)
     let uintBuffer = setLengthLeft(utils.toBuffer(u.awardHex), 32)
     let hashBuffer = utils.keccak256(Buffer.concat([usernameBuffer, uintBuffer]))
     let hash = utils.bufferToHex(hashBuffer)

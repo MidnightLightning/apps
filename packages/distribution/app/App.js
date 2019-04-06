@@ -24,7 +24,7 @@ const AppContainer = styled(AragonApp)`
   justify-content: center;
 `
 
-import dist01 from '../distributions/post/0x4e42be00.json'
+import dist01 from '../distributions/post/0x3c29d249.json'
 
 export default class App extends React.Component {
 
@@ -33,7 +33,7 @@ export default class App extends React.Component {
   lastObservable = {}
 
   distributions = {
-    "0x4e42be00": dist01
+    "0x3c29d249": dist01
   }
 
   initDone = false
@@ -82,15 +82,15 @@ export default class App extends React.Component {
     let roots = this.state.roots
     if(!username || !roots.length) return;
     let claimed = await Promise.all(
-        roots.map((root,i)=>this.props.app.call('claimed', root, web3.fromAscii(username)).toPromise())
+        roots.map((root,i)=>this.props.app.call('claimed', root, username).toPromise())
       )
     this.setState({claimed})
   }
 
   getUsername = async (account) => {
     console.log("getUsername")
-    let username = await this.props.app.call('getUsername', account).toPromise()
-    if(username) this.setState({username: web3.toUtf8(username)})
+    let username = await this.props.app.call('nameOfOwner', account).toPromise()
+    if(username) this.setState({username})
     this.getClaimed()
   }
 
@@ -110,10 +110,8 @@ export default class App extends React.Component {
   }
 
   claim = (root, userDistData) => {
-    let username = web3.fromAscii(userDistData.username)            // username
     let award = web3.toBigNumber(userDistData.award).toFixed()    // amount
-    console.log(root, username, award)
-    this.props.app.award(root, username, award, userDistData.proof)
+    this.props.app.award(root, userDistData.username, award, userDistData.proof)
   }
 
   openClaimControls = (root) => {
@@ -173,45 +171,6 @@ class NewDistribution extends React.Component {
       <Field label="New distribution merkle root:">
         <TextInput value={this.state.newRoot} onChange={this.handleNewRootChange} />
         <Button onClick={this.submitRoot}>Add</Button>
-      </Field>
-    )
-  }
-}
-
-class Claim extends React.Component {
-
-  state = {claim: '', owner: ''}
-
-  handleClaim = (root) => {
-    console.log(root)
-    let claimArgs = this.state.claim.split("\t")
-    let username = web3.fromAscii(claimArgs[0])                // username
-    let amount = web3.toBigNumber(claimArgs[1]).toFixed()    // amount
-    let proof = JSON.parse(claimArgs[2])                    // merkle proof
-    this.props.app.award(root, username, amount, proof)
-  }
-
-  handleClaimChange = (event) => {
-    this.setState({claim: event.target.value});
-    this.getOwner(event.target.value.split("\t")[0])
-  }
-
-  getOwner = async (username) => {
-    if(!username) return
-    console.log(username)
-    let usernameHex = web3.fromAscii(username)                // username
-    console.log(usernameHex)
-    let owner = await this.props.app.call('getOwner', usernameHex).toPromise()
-    console.log(owner)
-    this.setState({owner})
-  }
-
-  render() {
-    return (
-      <Field label="Claim award:">
-        <TextInput wide value={this.state.claim} onChange={this.handleClaimChange} />
-        <Button onClick={()=>this.handleClaim(this.props.root)}>Claim</Button>
-        <p>claim recipient: {this.state.owner || "recipient not registered"}</p>
       </Field>
     )
   }

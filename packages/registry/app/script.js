@@ -16,11 +16,13 @@ app.store(async (state, event) => {
 
   switch (event.event) {
     case 'Registered':
+      console.log(event)
       if(event.returnValues.owner === account){
         return { ...state, regChange: ++state.regChange }
       }
       break;
     case 'Deregistered':
+      console.log(event)
       if(event.returnValues.owner === account){
         return { ...state, regChange: ++state.regChange }
       }
@@ -28,6 +30,8 @@ app.store(async (state, event) => {
     case 'RegistrationPeriodStarted':
       const rootsCount = await getRootsCount()
       return { ...state, rootsCount }
+    case 'RootNodeTransferred':
+      return { ...state }
     default:
       return state
   }

@@ -44,10 +44,10 @@ export default class App extends React.Component {
 
   getUsername = async (account) => {
     console.log("getUsername")
-    let username = await this.props.app.call('getUsername', account).toPromise()
+    let username = await this.props.app.call('nameOfOwner', account).toPromise()
     let balance = await this.props.app.call('balances', username).toPromise()
     balance = web3.toBigNumber(balance).div("1e+18").toNumber()
-    if(username) this.setState({username: web3.toUtf8(username), balance})
+    if(username) this.setState({username, balance})
   }
 
   handleUrlChange = (event) => {
@@ -65,7 +65,7 @@ export default class App extends React.Component {
   }
 
   getRecipientAddress = async (recipient) => {
-    let owner = await this.props.app.call('getOwner', web3.fromAscii(recipient)).toPromise()
+    let owner = await this.props.app.call('ownerOfName', recipient).toPromise()
     if(owner === "0x0000000000000000000000000000000000000000")
       owner = ""
     this.setState({owner})
@@ -81,8 +81,6 @@ export default class App extends React.Component {
 
   submitTip = async (event) => {
     let cid=0, ctype=0;
-
-    let recipient = web3.fromAscii(this.state.recipient);
 
     try {
       let parts = (new URL(this.state.url)).pathname.split("/").filter(a=>(!!a))
@@ -109,7 +107,7 @@ export default class App extends React.Component {
       // gas: 2000000
     }
 
-    this.props.app.tip(recipient, value.toFixed(), ctype, cid.toString(), intentParams)
+    this.props.app.tip(this.state.recipient, value.toFixed(), ctype, cid.toString(), intentParams)
   }
 
   usePanel = (panel) => {
@@ -163,7 +161,7 @@ function TipList({tips}) {
   const listItems = tips.map((tip) => {
     console.log(tip)
     return (
-      <li>{`${web3.toUtf8(tip.fromName)} TIPPED ${web3.toUtf8(tip.toName)} ${web3.toBigNumber(tip.amount).div("1e+18").toFixed()} for ${types[tip.ctype]}:${bases.toBase36(tip.cid)}`}</li>
+      <li>{`${tip.fromName} TIPPED ${tip.toName} ${web3.toBigNumber(tip.amount).div("1e+18").toFixed()} for ${types[tip.ctype]}:${bases.toBase36(tip.cid)}`}</li>
     )
   });
   return (

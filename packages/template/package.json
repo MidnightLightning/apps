@@ -4,6 +4,7 @@
   "description": "",
   "dependencies": {
     "@aragon/os": "^4.1.0",
+    "@daonuts/common": "^0.0.0",
     "@daonuts/distribution": "^0.0.1",
     "@daonuts/hamburger": "^0.0.1",
     "@daonuts/karma-cap-voting": "^0.0.1",
