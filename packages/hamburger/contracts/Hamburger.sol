@@ -3,15 +3,12 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@aragon/os/contracts/lib/math/SafeMath64.sol";
-import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
-import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
-import "@aragon/os/contracts/ens/ENSConstants.sol";
 
 import "@daonuts/token-manager/contracts/TokenManager.sol";
 import "@daonuts/token/contracts/IERC20.sol";
-import "@daonuts/registry/contracts/Registry.sol";
+import "@daonuts/common/contracts/Names.sol";
 
-contract Hamburger is AragonApp, ENSConstants {
+contract Hamburger is AragonApp, Names {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
@@ -38,16 +35,8 @@ contract Hamburger is AragonApp, ENSConstants {
     mapping(uint => Asset) public assets;
     uint public assetsCount;
     AbstractENS public ens;
-    PublicResolver public resolver;
     TokenManager public currencyManager;
     IERC20 public currency;
-    Registry public registry;
-
-    /// ENS
-    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
-    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
-    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
-    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
 
     /// ACL
     bytes32 constant public PURCHASE_ASSET_ROLE = keccak256("PURCHASE_ASSET_ROLE");
@@ -67,15 +56,13 @@ contract Hamburger is AragonApp, ENSConstants {
     string private constant ERROR_INVALID_NAME = "ERROR_INVALID_NAME";
     string private constant ERROR_TM_BURN = "ERROR_TM_BURN";
 
-    /* function initialize(IERC20 _currency, Registry _registry) onlyInit public { */
-    function initialize(AbstractENS _ens, TokenManager _currencyManager, Registry _registry) onlyInit public {
+    function initialize(AbstractENS _ens, TokenManager _currencyManager) onlyInit public {
         initialized();
 
         ens = _ens;
-        resolver = PublicResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+        setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
         currencyManager = _currencyManager;
         currency = _currencyManager.token();
-        registry = _registry;
     }
 
     /**
@@ -139,8 +126,7 @@ contract Hamburger is AragonApp, ENSConstants {
 
         if(asset.requireReg) {
           // require new owner to be registered
-          bytes32 username = registry.ownerToUsername(_to);
-          require(username != bytes32(0), USER_NOT_REGISTERED);
+          require(bytes(nameOfOwner(_to)).length != 0, USER_NOT_REGISTERED);
         }
         require(asset.active == true, NO_ACTIVE_ASSET);
         require(_to != address(0), ERROR_0x0_NOT_ALLOWED);

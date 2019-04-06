@@ -23,16 +23,16 @@ const AppContainer = styled(AragonApp)`
   justify-content: center;
 `
 
-import reg01 from '../registrations/post/0x8476930a.json'
+import reg01 from '../registrations/post/0x69468d76.json'
 
 export default class App extends React.Component {
 
-  state = {newRoot:'', ownsRootNode: false, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
+  state = {newRoot:'', ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
   registrations = {
-    "0x8476930a": reg01
+    "0x69468d76": reg01
   }
 
   initDone = false
@@ -51,11 +51,14 @@ export default class App extends React.Component {
         if(o.rootsCount !== this.lastObservable.rootsCount)
           this.getRoots(o.rootsCount)
         this.lastObservable = o
+        this.getRootNodeOwner()
+        this.checkRootNodeOwner()
       })
     }
   }
 
   init = async () => {
+    this.getRootNodeOwner()
     this.checkRootNodeOwner()
     this.getUsername(this.props.userAccount)
     let rootsCount = await this.props.app.call('getRootsCount').toPromise()
@@ -75,8 +78,14 @@ export default class App extends React.Component {
 
   getUsername = async (account) => {
     console.log("getUsername")
-    let username = await this.props.app.call('ownerToUsername', account).toPromise()
-    if(username) this.setState({username: web3.toUtf8(username)})
+    let username = await this.props.app.call('nameOfOwner', account).toPromise()
+    console.log(username)
+    if(username) this.setState({username})
+  }
+
+  getRootNodeOwner = async (account) => {
+    let rootNodeOwner = await this.props.app.call('rootNodeOwner').toPromise()
+    this.setState({rootNodeOwner})
   }
 
   checkRootNodeOwner = async () => {
@@ -87,12 +96,13 @@ export default class App extends React.Component {
   handleNameCheckChange = async (event) => {
     let username = event.target.value;
     if(!username) return
-    console.log(username)
-    let usernameHex = web3.fromAscii(username)                // username
-    console.log(usernameHex)
-    let nameCheckOwner = await this.props.app.call('usernameToOwner', usernameHex).toPromise()
+    let nameCheckOwner = await this.props.app.call('ownerOfName', username).toPromise()
     console.log(nameCheckOwner)
     this.setState({nameCheckOwner})
+  }
+
+  handleNewOwnerChange = async (event) => {
+    this.setState({newOwner: event.target.value})
   }
 
   handleMenuPanelOpen = () => {
@@ -107,6 +117,10 @@ export default class App extends React.Component {
     this.props.app.addRoot(this.state.newRoot)
   }
 
+  transferRootNode = (event) => {
+    this.props.app.transferRootNode(this.state.newOwner)
+  }
+
   usePanel = (panel) => {
     this.setState({panelOpen: true, panel})
   }
@@ -116,10 +130,7 @@ export default class App extends React.Component {
   }
 
   register = (root, userRegData) => {
-    console.log(userRegData)
-    let username = web3.fromAscii(userRegData.username)                // username
-
-    this.props.app.registerSelf(root, username, userRegData.proof)
+    this.props.app.registerSelf(root, userRegData.username, userRegData.proof)
   }
 
   openRegisterControls = (root) => {
@@ -170,6 +181,18 @@ export default class App extends React.Component {
             <TextInput placeholder="username" value={this.state.nameCheck} onChange={this.handleNameCheckChange} />
             <p>owner: {this.state.nameCheckOwner}</p>
           </Field>
+          <br />
+          <hr />
+          <Field label="Transfer root node:">
+            <TextInput placeholder="0xNEW_OWNER_ADDRESS" value={this.state.newOwner} onChange={this.handleNewOwnerChange} />
+            <Button onClick={this.transferRootNode}>Transfer</Button>
+          </Field>
+          <br />
+          <hr />
+          {this.state.ownsRootNode ? <Info>Registry ({this.state.rootNodeOwner.slice(0,6)+'...'}) owns daonuts.eth</Info> : <Info.Alert title="daonuts.eth">
+            Registry does not own daonuts.eth (owner is {this.state.rootNodeOwner}). Registration tx will fail.
+          </Info.Alert>}
+          <hr />
           <SidePanel title={this.state.panel.title} opened={this.state.panelOpen} onClose={this.closePanel}>
             {Child && <Child {...this.state.panel.childProps} />}
           </SidePanel>
@@ -196,32 +219,6 @@ class NewRegistrationPeriod extends React.Component {
       <Field label="New registration merkle root:">
         <TextInput value={this.state.newRoot} onChange={this.handleNewRootChange} />
         <Button onClick={this.submitRoot}>Add</Button>
-      </Field>
-    )
-  }
-}
-
-class Register extends React.Component {
-
-  state = {claim: ''}
-
-  handleClaimChange = (event) => {
-    this.setState({claim: event.target.value});
-  }
-
-  register = (root) => {
-    let claimArgs = this.state.claim.split("\t")
-    let username = web3.fromAscii(claimArgs[0])                // username
-    let proof = JSON.parse(claimArgs[1])                    // merkle proof
-
-    this.props.app.registerSelf(root, username, proof)
-  }
-
-  render() {
-    return (
-      <Field label="Register:">
-        <TextInput wide value={this.state.claim} onChange={this.handleClaimChange} />
-        <Button onClick={()=>this.register(this.props.root)}>Register</Button>
       </Field>
     )
   }

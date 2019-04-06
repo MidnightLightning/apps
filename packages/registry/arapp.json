@@ -4,6 +4,11 @@
       "name": "Start a new registration period by adding a merkle root",
       "id": "START_REGISTRATION_PERIOD",
       "params": []
+    },
+    {
+      "name": "Transfer root ENS node (daonuts.eth) to new owner",
+      "id": "TRANSFER_ROOT_NODE",
+      "params": []
     }
   ],
   "environments": {

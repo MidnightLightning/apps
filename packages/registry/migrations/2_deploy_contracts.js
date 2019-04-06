@@ -1,5 +1,5 @@
-var CounterApp = artifacts.require('CounterApp.sol')
+var Registry = artifacts.require('Registry.sol')
 
 module.exports = function (deployer) {
-  deployer.deploy(CounterApp)
+  deployer.deploy(Registry)
 }
