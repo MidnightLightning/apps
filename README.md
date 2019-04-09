@@ -23,3 +23,10 @@ This is a monorepo for modules and apps related to the [/r/daonuts](https://www.
 1. `npm run publish_apps`
 1. `npm run template` (follow prompts)
 1. dao interface should open in browser. alternatively read DAO_ADDRESS from `Created DAO: <DAO_ADDRESS>` and open `http://localhost:3000/#/<DAO_ADDRESS>` manually
+
+## Building Go packages
+
+1. install solc v0.4.25
+  1. `wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-ubuntu-trusty.zip`
+  1. `unzip solidity-ubuntu-trusty`
+  1. `sudo cp solidity-ubuntu-trusty/solc /usr/local/bin/`

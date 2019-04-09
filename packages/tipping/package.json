@@ -51,6 +51,7 @@
 		"build:app": "parcel build app/index.html -d dist/ --public-url '.' --no-cache",
 		"build:script": "parcel build app/script.js -d dist/ --no-cache",
 		"build": "npm run sync-assets && npm run build:app && npm run build:script",
+		"build:gopkg": "solc @aragon=$(pwd)/../../node_modules/@aragon @daonuts=$(pwd)/.. --abi contracts/Tipping.sol -o build --allow-paths=/home/carl/Projects/daonuts/apps && abigen --abi=./build/Tipping.abi --pkg=tipping --out=go/Tipping.go && solc @aragon=$(pwd)/../../node_modules/@aragon @daonuts=$(pwd)/.. --bin contracts/Tipping.sol -o build --allow-paths=/home/carl/Projects/daonuts/apps && abigen --bin=./build/Tipping.bin --abi=./build/Tipping.abi --pkg=tipping --out=go/Tipping.go",
 		"publish:patch": "aragon apm publish patch",
 		"publish:minor": "aragon apm publish minor",
 		"publish:major": "aragon apm publish major",
