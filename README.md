@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a monorepo for modules and apps related to the [/r/daonuts](https://www.reddit.com/r/daonuts).
+This is a monorepo for modules and apps related to the [/r/daonuts](https://www.reddit.com/r/daonuts) project.
 
 ## Deploy locally
 

@@ -38,11 +38,17 @@ contract Tipping is AragonApp, Names {
     event Tip(string fromName, string toName, uint amount, ContentType ctype, uint40 cid);
     event Claim(string toName, uint balance);
 
-    function initialize(AbstractENS _ens, IERC20 _currency) onlyInit public {
+    function initialize(AbstractENS _ens, address altResolver, IERC20 _currency) onlyInit public {
         initialized();
 
         ens = _ens;
-        setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+
+        if(altResolver == address(0)) {
+          setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+        } else {
+          setResolver(altResolver);
+        }
+        
         currency = _currency;
     }
 

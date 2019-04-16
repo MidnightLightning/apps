@@ -25,11 +25,18 @@ contract AppInstaller is APMNamehash {
     string private constant APP_INSTALLER_NOT_OWNER = "APP_INSTALLER_NOT_OWNER";
 
     AbstractENS ens;
+    AbstractENS aragonENS;
+    PublicResolver altResolver;
     uint64 constant PCT = 10 ** 16;
     address constant ANY_ENTITY = address(-1);
 
-    function install(Kernel _dao, AbstractENS _ens, bytes32 _regRoot, bytes32 _distRoot) external {
+    constructor(AbstractENS _ens, AbstractENS _aragonENS, PublicResolver _altResolver) {
         ens = _ens;
+        aragonENS = _aragonENS;
+        altResolver = _altResolver;
+    }
+
+    function install(Kernel _dao, bytes32 _regRoot, bytes32 _distRoot) external {
         Token currency = new Token("Currency", 18, "NUTS", true);
         Token karma = new Token("Karma", 18, "KARM", false);
         (TokenManager currencyManager) = installCurrencyManager(_dao, currency);
@@ -45,13 +52,13 @@ contract AppInstaller is APMNamehash {
     function installDistribution(Kernel _dao, TokenManager _currencyManager, TokenManager _karmaManager, bytes32 _distRoot) internal returns (Distribution distribution) {
         bytes32 distributionAppId = apmNamehash("daonuts-distribution");
         distribution = Distribution(_dao.newAppInstance(distributionAppId, latestVersionAppBase(distributionAppId)));
-        distribution.initialize(ens, _currencyManager, _karmaManager, _distRoot);
+        distribution.initialize(ens, altResolver, _currencyManager, _karmaManager, _distRoot);
     }
 
     function installHamburger(Kernel _dao, TokenManager _currencyManager) internal returns (Hamburger hamburger) {
         bytes32 hamburgerAppId = apmNamehash("daonuts-hamburger");
         hamburger = Hamburger(_dao.newAppInstance(hamburgerAppId, latestVersionAppBase(hamburgerAppId)));
-        hamburger.initialize(ens, _currencyManager);
+        hamburger.initialize(ens, altResolver, _currencyManager);
     }
 
     function installVoting(Kernel _dao, Token _currency, Token _karma) internal returns (KarmaCapVoting voting) {
@@ -63,14 +70,14 @@ contract AppInstaller is APMNamehash {
     function installRegistry(Kernel _dao, bytes32 _regRoot) internal returns (Registry registry) {
         bytes32 registryAppId = apmNamehash("daonuts-registry");
         registry = Registry(_dao.newAppInstance(registryAppId, latestVersionAppBase(registryAppId)));
-        registry.initialize(ens, _regRoot);
+        registry.initialize(ens, altResolver, _regRoot);
     }
 
     function installTipping(Kernel _dao, Token _currency) internal returns (Tipping tipping) {
         ACL acl = ACL(_dao.acl());
         bytes32 tippingAppId = apmNamehash("daonuts-tipping");
         tipping = Tipping(_dao.newAppInstance(tippingAppId, latestVersionAppBase(tippingAppId)));
-        tipping.initialize(ens, _currency);
+        tipping.initialize(ens, altResolver, _currency);
         acl.createPermission(tipping, tipping, tipping.NONE(), tipping);
     }
 

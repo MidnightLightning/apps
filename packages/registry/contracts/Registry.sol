@@ -38,11 +38,16 @@ contract Registry is AragonApp, IForwarder, Names {
     string private constant ERROR_NAME_NOT_SET = "NAME_NOT_SET";
     string private constant ERROR_ADDR_NOT_SET = "ADDR_NOT_SET";
 
-    function initialize(AbstractENS _ens, bytes32 _root) onlyInit public {
+    function initialize(AbstractENS _ens, address altResolver, bytes32 _root) onlyInit public {
         initialized();
 
         ens = _ens;
-        setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+
+        if(altResolver == address(0)) {
+          setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+        } else {
+          setResolver(altResolver);
+        }
 
         _addRoot(_root);
     }

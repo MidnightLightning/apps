@@ -40,11 +40,17 @@ contract Distribution is AragonApp, Names {
     string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
     string private constant INVALID = "INVALID";
 
-    function initialize(AbstractENS _ens, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
+    function initialize(AbstractENS _ens, address altResolver, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
         initialized();
 
         ens = _ens;
-        setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+
+        if(altResolver == address(0)) {
+          setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+        } else {
+          setResolver(altResolver);
+        }
+
         tokenManager = _tokenManager;
         karmaManager = _karmaManager;
         _addRoot(_root);
