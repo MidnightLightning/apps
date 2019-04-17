@@ -11,6 +11,16 @@ case "$1" in
             ENS=0x98df287b6c145399aaa709692c8d308357bc085d
             OWNER=0x7b6C819e9db25c302A9adD821361bB95524023D7
             TLD="test"
+            TEMPLATE_APM="daonuts-template.open.aragonpm.eth"
+            echo environment: $ENV
+            ;;
+        production)
+            ENV="production"
+            NETWORK="mainnet"
+            ENS=0x314159265dd8dbb310642f98f50c066173c1259b
+            OWNER=0x7b6C819e9db25c302A9adD821361bB95524023D7
+            TLD="eth"
+            TEMPLATE_APM="daonuts-template.open.aragonpm.eth"
             echo environment: $ENV
             ;;
         *)
@@ -19,6 +29,7 @@ case "$1" in
             ENS=0x5f6f7e8cc7346a11ca2def8f827b7a0b612c56a1
             OWNER=0xb4124cEB3451635DAcedd11767f004d8a28c6eE7
             TLD="eth"
+            TEMPLATE_APM="daonuts-template"
             echo environment: $ENV
             ;;
 esac
@@ -40,7 +51,7 @@ read TEMPLATE
 
 aragon apm publish major $TEMPLATE --environment $ENV
 
-dao new --template daonuts-template --fn newInstance --fn-args $REG_ROOT $DIST_ROOT $APP_INSTALLER --environment $ENV
+dao new --template $TEMPLATE_APM --fn newInstance --fn-args $REG_ROOT $DIST_ROOT $APP_INSTALLER --environment $ENV
 
 echo What is the created DAO address?
 read DAO

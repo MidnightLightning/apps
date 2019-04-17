@@ -10,6 +10,7 @@
 		"publish_apps": "./packages/template/scripts/publish_apps.sh",
 		"publish_apps:rinkeby": "./packages/template/scripts/publish_apps.sh staging",
 		"template": "./packages/template/scripts/use_template.sh",
+		"template:rinkeby": "./packages/template/scripts/use_template.sh staging",
 		"build:gopkg": "lerna run clean && lerna run build:gopkg",
 		"compile": "lerna run compile",
     "clean": "lerna run clean"
