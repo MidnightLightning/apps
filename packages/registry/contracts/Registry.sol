@@ -38,16 +38,13 @@ contract Registry is AragonApp, IForwarder, Names {
     string private constant ERROR_NAME_NOT_SET = "NAME_NOT_SET";
     string private constant ERROR_ADDR_NOT_SET = "ADDR_NOT_SET";
 
-    function initialize(AbstractENS _ens, address altResolver, bytes32 _root) onlyInit public {
+    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, bytes32 _root) onlyInit public {
         initialized();
 
         ens = _ens;
 
-        if(altResolver == address(0)) {
-          setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
-        } else {
-          setResolver(altResolver);
-        }
+        setResolver(_resolver);
+        setRootNode(_rootNode);
 
         _addRoot(_root);
     }
@@ -84,14 +81,14 @@ contract Registry is AragonApp, IForwarder, Names {
 
     function _register(address _owner, string _username) internal {
         bytes32 ownerLabel = sha3HexAddress(_owner);
-        ens.setSubnodeOwner(DAONUTS_NODE, ownerLabel, address(this));
-        bytes32 ownerNode = keccak256(abi.encodePacked(DAONUTS_NODE, ownerLabel));
+        ens.setSubnodeOwner(rootNode, ownerLabel, address(this));
+        bytes32 ownerNode = keccak256(abi.encodePacked(rootNode, ownerLabel));
         resolver.setName(ownerNode, _username);
         require( keccak256(abi.encodePacked(resolver.name(ownerNode))) == keccak256(abi.encodePacked(_username)), ERROR_NAME_NOT_SET );
 
         bytes32 usernameLabel = keccak256(_username);
-        ens.setSubnodeOwner(DAONUTS_NODE, usernameLabel, address(this));
-        bytes32 usernameNode = keccak256(abi.encodePacked(DAONUTS_NODE, usernameLabel));
+        ens.setSubnodeOwner(rootNode, usernameLabel, address(this));
+        bytes32 usernameNode = keccak256(abi.encodePacked(rootNode, usernameLabel));
         resolver.setAddr(usernameNode, _owner);
         require( resolver.addr(usernameNode) == _owner, ERROR_ADDR_NOT_SET );
 
@@ -115,15 +112,15 @@ contract Registry is AragonApp, IForwarder, Names {
     }
 
     function claimOwnerNode(address _owner) internal {                        // claim from a previous Registry contract
-        require( ens.owner(DAONUTS_NODE) == address(this), ERROR_REGISTRY_NOT_OWNER );
+        require( ens.owner(rootNode) == address(this), ERROR_REGISTRY_NOT_OWNER );
         bytes32 ownerLabel = sha3HexAddress(_owner);
-        ens.setSubnodeOwner(DAONUTS_NODE, ownerLabel, address(this));
+        ens.setSubnodeOwner(rootNode, ownerLabel, address(this));
     }
 
     function claimNameNode(string _username) internal {                        // claim from a previous Registry contract
-        require( ens.owner(DAONUTS_NODE) == address(this), ERROR_REGISTRY_NOT_OWNER );
+        require( ens.owner(rootNode) == address(this), ERROR_REGISTRY_NOT_OWNER );
         bytes32 usernameLabel = keccak256(_username);
-        ens.setSubnodeOwner(DAONUTS_NODE, usernameLabel, address(this));
+        ens.setSubnodeOwner(rootNode, usernameLabel, address(this));
     }
 
     /**
@@ -189,11 +186,11 @@ contract Registry is AragonApp, IForwarder, Names {
     }
 
     function ownsRootNode() public view returns (bool) {
-        return ens.owner(DAONUTS_NODE) == address(this);
+        return ens.owner(rootNode) == address(this);
     }
 
     function rootNodeOwner() public view returns (address) {
-        return ens.owner(DAONUTS_NODE);
+        return ens.owner(rootNode);
     }
 
     /**
@@ -202,7 +199,7 @@ contract Registry is AragonApp, IForwarder, Names {
     * @param owner The address of the new owner.
     */
     function transferRootNode(address owner) auth(TRANSFER_ROOT_NODE) public {
-        ens.setOwner(DAONUTS_NODE, owner);
+        ens.setOwner(rootNode, owner);
         emit RootNodeTransferred(owner);
     }
 }

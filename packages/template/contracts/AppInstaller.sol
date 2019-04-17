@@ -17,28 +17,28 @@ import "@daonuts/token-manager/contracts/TokenManager.sol";
 
 contract AppInstaller is APMNamehash {
 
-    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
-    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
-    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
-    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
-
-    string private constant APP_INSTALLER_NOT_OWNER = "APP_INSTALLER_NOT_OWNER";
-
     AbstractENS ens;
     AbstractENS aragonENS;
-    PublicResolver altResolver;
+    PublicResolver resolver;
+    bytes32 rootNode;
     uint64 constant PCT = 10 ** 16;
     address constant ANY_ENTITY = address(-1);
 
-    constructor(AbstractENS _ens, AbstractENS _aragonENS, PublicResolver _altResolver) {
+    constructor(AbstractENS _ens, AbstractENS _aragonENS, PublicResolver _resolver, bytes32 _rootNode) {
         ens = _ens;
         aragonENS = _aragonENS;
-        altResolver = _altResolver;
+        rootNode = _rootNode;
+
+        if(_resolver == address(0)) {
+          resolver = PublicResolver(ens.resolver(0xfdd5d5de6dd63db72bbc2d487944ba13bf775b50a80805fe6fcaba9b0fba88f5)); // namehash("resolver.eth")
+        } else {
+          resolver = _resolver;
+        }
     }
 
     function install(Kernel _dao, bytes32 _regRoot, bytes32 _distRoot) external {
         Token currency = new Token("Currency", 18, "NUTS", true);
-        Token karma = new Token("Karma", 18, "KARM", false);
+        Token karma = new Token("Karma", 18, "KARMA", false);
         (TokenManager currencyManager) = installCurrencyManager(_dao, currency);
         (TokenManager karmaManager) = installKarmaManager(_dao, karma);
         KarmaCapVoting voting = installVoting(_dao, currency, karma);
@@ -52,13 +52,13 @@ contract AppInstaller is APMNamehash {
     function installDistribution(Kernel _dao, TokenManager _currencyManager, TokenManager _karmaManager, bytes32 _distRoot) internal returns (Distribution distribution) {
         bytes32 distributionAppId = apmNamehash("daonuts-distribution");
         distribution = Distribution(_dao.newAppInstance(distributionAppId, latestVersionAppBase(distributionAppId)));
-        distribution.initialize(ens, altResolver, _currencyManager, _karmaManager, _distRoot);
+        distribution.initialize(ens, resolver, rootNode, _currencyManager, _karmaManager, _distRoot);
     }
 
     function installHamburger(Kernel _dao, TokenManager _currencyManager) internal returns (Hamburger hamburger) {
         bytes32 hamburgerAppId = apmNamehash("daonuts-hamburger");
         hamburger = Hamburger(_dao.newAppInstance(hamburgerAppId, latestVersionAppBase(hamburgerAppId)));
-        hamburger.initialize(ens, altResolver, _currencyManager);
+        hamburger.initialize(ens, resolver, rootNode, _currencyManager);
     }
 
     function installVoting(Kernel _dao, Token _currency, Token _karma) internal returns (KarmaCapVoting voting) {
@@ -70,14 +70,14 @@ contract AppInstaller is APMNamehash {
     function installRegistry(Kernel _dao, bytes32 _regRoot) internal returns (Registry registry) {
         bytes32 registryAppId = apmNamehash("daonuts-registry");
         registry = Registry(_dao.newAppInstance(registryAppId, latestVersionAppBase(registryAppId)));
-        registry.initialize(ens, altResolver, _regRoot);
+        registry.initialize(ens, resolver, rootNode, _regRoot);
     }
 
     function installTipping(Kernel _dao, Token _currency) internal returns (Tipping tipping) {
         ACL acl = ACL(_dao.acl());
         bytes32 tippingAppId = apmNamehash("daonuts-tipping");
         tipping = Tipping(_dao.newAppInstance(tippingAppId, latestVersionAppBase(tippingAppId)));
-        tipping.initialize(ens, altResolver, _currency);
+        tipping.initialize(ens, resolver, rootNode, _currency);
         acl.createPermission(tipping, tipping, tipping.NONE(), tipping);
     }
 
@@ -134,7 +134,7 @@ contract AppInstaller is APMNamehash {
     }
 
     function latestVersionAppBase(bytes32 appId) public view returns (address base) {
-        Repo repo = Repo(PublicResolver(ens.resolver(appId)).addr(appId));
+        Repo repo = Repo(PublicResolver(aragonENS.resolver(appId)).addr(appId));
         (,base,) = repo.getLatest();
 
         return base;

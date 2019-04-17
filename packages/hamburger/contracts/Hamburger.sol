@@ -56,17 +56,14 @@ contract Hamburger is AragonApp, Names {
     string private constant ERROR_INVALID_NAME = "ERROR_INVALID_NAME";
     string private constant ERROR_TM_BURN = "ERROR_TM_BURN";
 
-    function initialize(AbstractENS _ens, address altResolver, TokenManager _currencyManager) onlyInit public {
+    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, TokenManager _currencyManager) onlyInit public {
         initialized();
 
         ens = _ens;
 
-        if(altResolver == address(0)) {
-          setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
-        } else {
-          setResolver(altResolver);
-        }
-        
+        setResolver(_resolver);
+        setRootNode(_rootNode);
+
         currencyManager = _currencyManager;
         currency = _currencyManager.token();
     }

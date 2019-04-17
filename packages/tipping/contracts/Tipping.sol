@@ -29,26 +29,17 @@ contract Tipping is AragonApp, Names {
     AbstractENS public ens;
     IERC20 public currency;
 
-    /// ENS
-    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
-    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
-    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
-    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
-
     event Tip(string fromName, string toName, uint amount, ContentType ctype, uint40 cid);
     event Claim(string toName, uint balance);
 
-    function initialize(AbstractENS _ens, address altResolver, IERC20 _currency) onlyInit public {
+    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, IERC20 _currency) onlyInit public {
         initialized();
 
         ens = _ens;
 
-        if(altResolver == address(0)) {
-          setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
-        } else {
-          setResolver(altResolver);
-        }
-        
+        setResolver(_resolver);
+        setRootNode(_rootNode);
+
         currency = _currency;
     }
 

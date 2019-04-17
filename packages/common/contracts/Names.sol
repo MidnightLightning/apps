@@ -11,10 +11,14 @@ contract Names is ENSConstants {
     /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
     /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
     /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
-    bytes32 internal constant DAONUTS_NODE = 0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e;
+    bytes32 public rootNode;
 
     function setResolver(address _resolver) internal {
         resolver = PublicResolver(_resolver);
+    }
+
+    function setRootNode(bytes32 _rootNode) internal {
+        rootNode = _rootNode;
     }
 
     function ownerOfName(string _username) public view returns (address) {
@@ -25,12 +29,12 @@ contract Names is ENSConstants {
         return resolver.name(addrNode(_owner));
     }
 
-    function nameNode(string _username) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(DAONUTS_NODE, keccak256(_username)));
+    function nameNode(string _username) public view returns (bytes32) {
+        return keccak256(abi.encodePacked(rootNode, keccak256(_username)));
     }
 
-    function addrNode(address _addr) public pure returns (bytes32) {
-       return keccak256(abi.encodePacked(DAONUTS_NODE, sha3HexAddress(_addr)));
+    function addrNode(address _addr) public view returns (bytes32) {
+       return keccak256(abi.encodePacked(rootNode, sha3HexAddress(_addr)));
     }
 
     /**
