@@ -29,16 +29,15 @@ contract Distribution is AragonApp {
     bytes32 constant public START_DISTRIBUTION = keccak256("START_DISTRIBUTION");
 
     // Errors
-    string private constant DISTRIBUTION_EXISTS = "DISTRIBUTION_EXISTS";
-    string private constant NO_ACTIVE_DISTRIBUTION = "NO_ACTIVE_DISTRIBUTION";
-    string private constant USER_HAS_COLLECTED = "USER_HAS_COLLECTED";
-    string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
-    string private constant INVALID = "INVALID";
+    string private constant ERROR_EXISTS = "EXISTS";
+    string private constant ERROR_NOT_FOUND = "NOT_FOUND";
+    string private constant ERROR_NOT_ALLOWED = "NOT_ALLOWED";
+    string private constant ERROR_INVALID = "INVALID";
 
-    function initialize(INames _names, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
+    function initialize(address _names, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
         initialized();
 
-        names = _names;
+        names = INames(_names);
         tokenManager = _tokenManager;
         karmaManager = _karmaManager;
         _addRoot(_root);
@@ -49,7 +48,7 @@ contract Distribution is AragonApp {
      * @param _root New distribution merkle root
      */
     function addRoot(bytes32 _root) auth(START_DISTRIBUTION) external {
-        require( distributions[_root].active == false, DISTRIBUTION_EXISTS );
+        require( distributions[_root].active == false, ERROR_EXISTS );
         _addRoot(_root);
     }
 
@@ -69,11 +68,11 @@ contract Distribution is AragonApp {
      */
     function award(bytes32 _root, string _username, uint256 _award, bytes32[] _proof) external {
         address recipient = names.ownerOfName(_username);
-        require( recipient != address(0), USER_NOT_REGISTERED );
-        require( distributions[_root].active == true, NO_ACTIVE_DISTRIBUTION );
+        require( recipient != address(0), ERROR_NOT_FOUND );
+        require( distributions[_root].active == true, ERROR_NOT_FOUND );
         bytes32 nameHash = keccak256(_username);
-        require( distributions[_root].claimed[nameHash] == false, USER_HAS_COLLECTED );
-        require( validate(_root, _username, _award, _proof), INVALID );
+        require( distributions[_root].claimed[nameHash] == false, ERROR_NOT_ALLOWED );
+        require( validate(_root, _username, _award, _proof), ERROR_INVALID );
         distributions[_root].claimed[nameHash] = true;
         // do award user TODO
 

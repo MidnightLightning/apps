@@ -13,6 +13,7 @@
 		"template:rinkeby": "./packages/template/scripts/use_template.sh staging",
 		"build:gopkg": "lerna run clean && lerna run build:gopkg",
 		"compile": "lerna run compile",
-    "clean": "lerna run clean"
+    "clean": "lerna run clean",
+		"size": "lerna run size"
 	}
 }

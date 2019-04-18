@@ -27,7 +27,7 @@ import reg01 from '../registrations/post/0x69468d76.json'
 
 export default class App extends React.Component {
 
-  state = {ens: null, test:null, newRoot:'', resolver: null, rootNode: null, ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
+  state = {contractAddress: null, newRoot:'', rootNode: null, ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
@@ -51,20 +51,14 @@ export default class App extends React.Component {
         if(o.rootsCount !== this.lastObservable.rootsCount)
           this.getRoots(o.rootsCount)
         this.lastObservable = o
-        this.getRootNode()
         this.getRootNodeOwner()
-        this.checkRootNodeOwner()
       })
     }
   }
 
   init = async () => {
-    this.getENS()
-    this.getTest()
-    this.getResolver()
-    this.getRootNode()
+    this.getContractAddress()
     this.getRootNodeOwner()
-    this.checkRootNodeOwner()
     this.getUsername(this.props.userAccount)
     let rootsCount = await this.props.app.call('getRootsCount').toPromise()
     this.getRoots(rootsCount)
@@ -81,6 +75,12 @@ export default class App extends React.Component {
     this.setState({roots})
   }
 
+  getContractAddress = async (account) => {
+    console.log("getContractAddress")
+    let contractAddress = await this.props.app.call('self').toPromise()
+    if(contractAddress) this.setState({contractAddress, ownsRootNode: contractAddress === this.state.rootNodeOwner})
+  }
+
   getUsername = async (account) => {
     console.log("getUsername")
     let username = await this.props.app.call('nameOfOwner', account).toPromise()
@@ -88,34 +88,9 @@ export default class App extends React.Component {
     if(username) this.setState({username})
   }
 
-  getENS = async (account) => {
-    let ens = await this.props.app.call('ens').toPromise()
-    this.setState({ens})
-  }
-
-  getTest = async (account) => {
-    let test = await this.props.app.call('test').toPromise()
-    this.setState({test})
-  }
-
-  getResolver = async (account) => {
-    let resolver = await this.props.app.call('resolver').toPromise()
-    this.setState({resolver})
-  }
-
-  getRootNode = async (account) => {
-    let rootNode = await this.props.app.call('rootNode').toPromise()
-    this.setState({rootNode})
-  }
-
   getRootNodeOwner = async (account) => {
     let rootNodeOwner = await this.props.app.call('rootNodeOwner').toPromise()
-    this.setState({rootNodeOwner})
-  }
-
-  checkRootNodeOwner = async () => {
-    let ownsRootNode = await this.props.app.call('ownsRootNode').toPromise()
-    this.setState({ownsRootNode})
+    this.setState({rootNodeOwner, ownsRootNode: this.state.contractAddress === rootNodeOwner})
   }
 
   handleNameCheckChange = async (event) => {

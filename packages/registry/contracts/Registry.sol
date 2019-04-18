@@ -37,11 +37,11 @@ contract Registry is AragonApp, IForwarder {
     string private constant ERROR_ADDR_NOT_SET = "ADDR_NOT_SET";
     string private constant ERROR_INVALID = "INVALID";
 
-    function initialize(AbstractENS _ens, INames _names, bytes32 _root) onlyInit public {
+    function initialize(AbstractENS _ens, address _names, bytes32 _root) onlyInit public {
         initialized();
 
         ens = _ens;
-        names = _names;
+        names = INames(_names);
         _addRoot(_root);
     }
 
@@ -138,18 +138,6 @@ contract Registry is AragonApp, IForwarder {
         return checkProof(_root, _proof, hash);
     }
 
-    function hash(address _owner, string _username) public view returns (bytes32) {
-        return keccak256(_owner, _username);
-    }
-
-    function hashAddress(address _owner) public view returns (bytes32) {
-        return keccak256(_owner);
-    }
-
-    function hashString(string _username) public view returns (bytes32) {
-        return keccak256(_username);
-    }
-
     function checkProof(bytes32 root, bytes32[] proof, bytes32 hash) public pure returns (bool) {
 
         for (uint i = 0; i < proof.length; i++) {
@@ -186,10 +174,6 @@ contract Registry is AragonApp, IForwarder {
         return true;
     }
 
-    function ownsRootNode() public view returns (bool) {
-        return ens.owner(names.rootNode()) == address(this);
-    }
-
     function rootNodeOwner() public view returns (address) {
         return ens.owner(names.rootNode());
     }
@@ -210,5 +194,9 @@ contract Registry is AragonApp, IForwarder {
     function transferRootNode(address owner) auth(TRANSFER_ROOT_NODE) public {
         ens.setOwner(names.rootNode(), owner);
         emit RootNodeTransferred(owner);
+    }
+
+    function self() public view returns (address) {
+        return address(this);
     }
 }
