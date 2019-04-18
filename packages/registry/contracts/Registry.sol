@@ -30,15 +30,12 @@ contract Registry is AragonApp, IForwarder {
     bytes32 constant public TRANSFER_ROOT_NODE = 0x371d57b5d5e36ffacd760261ee1986c14c5a44484f6cd32d970413d31467313e;
 
     // Errors
-    string private constant REGISTRATION_EXISTS = "REGISTRATION_EXISTS";
-    string private constant NO_ACTIVE_REGISTRATION_PERIOD = "NO_ACTIVE_REGISTRATION_PERIOD";
-    string private constant REGISTRATION_PERIOD_EXISTS = "REGISTRATION_PERIOD_EXISTS";
-    string private constant REGISTRATION_NOT_FOUND = "REGISTRATION_NOT_FOUND";
-    string private constant INVALID = "INVALID";
-    string private constant ERROR_CAN_NOT_FORWARD = "REGISTRY_CAN_NOT_FORWARD";
-    string private constant ERROR_REGISTRY_NOT_OWNER = "REGISTRY_NOT_OWNER";
+    string private constant ERROR_EXISTS = "EXISTS";
+    string private constant ERROR_NOT_FOUND = "NOT_FOUND";
+    string private constant ERROR_NOT_ALLOWED = "NOT_ALLOWED";
     string private constant ERROR_NAME_NOT_SET = "NAME_NOT_SET";
     string private constant ERROR_ADDR_NOT_SET = "ADDR_NOT_SET";
+    string private constant ERROR_INVALID = "INVALID";
 
     function initialize(AbstractENS _ens, INames _names, bytes32 _root) onlyInit public {
         initialized();
@@ -53,7 +50,7 @@ contract Registry is AragonApp, IForwarder {
      * @param _root New distribution merkle root
      */
     function addRoot(bytes32 _root) auth(START_REGISTRATION_PERIOD) public {
-        require( activeRegPeriod[_root] == false, REGISTRATION_PERIOD_EXISTS );
+        require( activeRegPeriod[_root] == false, ERROR_EXISTS );
         _addRoot(_root);
     }
 
@@ -64,17 +61,17 @@ contract Registry is AragonApp, IForwarder {
     }
 
     function registerSelf(bytes32 _root, string _username, bytes32[] _proof) external {
-        require( activeRegPeriod[_root] == true, NO_ACTIVE_REGISTRATION_PERIOD );
-        require( names.ownerOfName(_username) == address(0), REGISTRATION_EXISTS );
-        require( bytes(names.nameOfOwner(msg.sender)).length == 0, REGISTRATION_EXISTS );
+        require( activeRegPeriod[_root] == true, ERROR_NOT_FOUND );
+        require( ownerOfName(_username) == address(0), ERROR_EXISTS );
+        require( bytes(nameOfOwner(msg.sender)).length == 0, ERROR_EXISTS );
 
-        require( validate(_root, msg.sender, _username, _proof), INVALID );
+        require( validate(_root, msg.sender, _username, _proof), ERROR_INVALID );
         _register(msg.sender, _username);
     }
 
     function deregisterSelf() external {
-        string memory username = names.nameOfOwner(msg.sender);
-        require( bytes(username).length != 0, REGISTRATION_NOT_FOUND );
+        string memory username = nameOfOwner(msg.sender);
+        require( bytes(username).length != 0, ERROR_NOT_FOUND );
         _deregister(msg.sender, username);
     }
 
@@ -113,14 +110,16 @@ contract Registry is AragonApp, IForwarder {
         emit Deregistered(_owner, _username);
     }
 
-    function claimOwnerNode(address _owner) internal {                        // claim from a previous Registry contract
-        require( ens.owner(names.rootNode()) == address(this), ERROR_REGISTRY_NOT_OWNER );
+    function claimOwnerNode(address _owner) internal {
+        // claim from a previous Registry contract
+        require( ens.owner(names.rootNode()) == address(this), ERROR_NOT_ALLOWED );
         bytes32 ownerLabel = names.sha3HexAddress(_owner);
         ens.setSubnodeOwner(names.rootNode(), ownerLabel, address(this));
     }
 
-    function claimNameNode(string _username) internal {                        // claim from a previous Registry contract
-        require( ens.owner(names.rootNode()) == address(this), ERROR_REGISTRY_NOT_OWNER );
+    function claimNameNode(string _username) internal {
+        // claim from a previous Registry contract
+        require( ens.owner(names.rootNode()) == address(this), ERROR_NOT_ALLOWED );
         bytes32 usernameLabel = keccak256(_username);
         ens.setSubnodeOwner(names.rootNode(), usernameLabel, address(this));
     }
@@ -170,7 +169,7 @@ contract Registry is AragonApp, IForwarder {
     * @param _evmScript Script being executed
     */
     function forward(bytes _evmScript) public {
-        require(canForward(msg.sender, _evmScript), ERROR_CAN_NOT_FORWARD);
+        require(canForward(msg.sender, _evmScript), ERROR_NOT_ALLOWED);
         bytes memory input = new bytes(0); // TODO: Consider input for this
 
         address[] memory blacklist;
@@ -180,7 +179,7 @@ contract Registry is AragonApp, IForwarder {
 
     function canForward(address _sender, bytes) public view returns (bool) {
         // can forward if sender has registered a username
-        return hasInitialized() && bytes(names.nameOfOwner(_sender)).length != 0;
+        return hasInitialized() && bytes(nameOfOwner(_sender)).length != 0;
     }
 
     function isForwarder() public pure returns (bool) {
