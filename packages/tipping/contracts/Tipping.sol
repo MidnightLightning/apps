@@ -4,9 +4,9 @@ import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 
 import "@daonuts/token/contracts/IERC20.sol";
-import "@daonuts/common/contracts/Names.sol";
+import "@daonuts/common/contracts/INames.sol";
 
-contract Tipping is AragonApp, Names {
+contract Tipping is AragonApp {
     using SafeMath for uint256;
 
     enum ContentType                                       { NONE, COMMENT, POST }
@@ -26,25 +26,22 @@ contract Tipping is AragonApp, Names {
     string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
     string private constant NOTHING_TO_CLAIM = "NOTHING_TO_CLAIM";
 
-    AbstractENS public ens;
+    /* AbstractENS public ens; */
+    INames public names;
     IERC20 public currency;
 
     event Tip(string fromName, string toName, uint amount, ContentType ctype, uint40 cid);
     event Claim(string toName, uint balance);
 
-    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, IERC20 _currency) onlyInit public {
+    function initialize(address _names, IERC20 _currency) onlyInit public {
         initialized();
 
-        ens = _ens;
-
-        setResolver(_resolver);
-        setRootNode(_rootNode);
-
+        names = INames(_names);
         currency = _currency;
     }
 
     function claim(address _owner) external {
-        string memory toName = nameOfOwner(_owner);
+        string memory toName = names.nameOfOwner(_owner);
         require( bytes(toName).length != 0, USER_NOT_REGISTERED );
         bytes32 nameHash = keccak256(toName);
         uint256 balance = balances[nameHash];
@@ -55,7 +52,7 @@ contract Tipping is AragonApp, Names {
     }
 
     function tip(string _toName, uint _amount, ContentType _ctype, uint40 _cid) external {
-        address to = ownerOfName(_toName);
+        address to = names.ownerOfName(_toName);
         if(to == 0x0) {
             bytes32 nameHash = keccak256(_toName);
             require( currency.transferFrom(msg.sender, this, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
@@ -63,7 +60,7 @@ contract Tipping is AragonApp, Names {
         } else {
             require( currency.transferFrom(msg.sender, to, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED );
         }
-        string memory fromName = nameOfOwner(msg.sender);
+        string memory fromName = names.nameOfOwner(msg.sender);
         emit Tip(fromName, _toName, _amount, _ctype, _cid);
     }
 

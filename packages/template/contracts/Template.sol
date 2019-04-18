@@ -47,8 +47,7 @@ contract TemplateBase is APMNamehash {
 
 contract Template is TemplateBase {
 
-    constructor(AbstractENS aragonENS) TemplateBase(DAOFactory(0), aragonENS) {
-    }
+    constructor(AbstractENS aragonENS) TemplateBase(DAOFactory(0), aragonENS) {}
 
     function newInstance(bytes32 _regRoot, bytes32 _distRoot, IAppInstaller _installer) {
         Kernel dao = fac.newDAO(this);

@@ -6,9 +6,9 @@ import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
 import "@daonuts/token-manager/contracts/TokenManager.sol";
 import "@daonuts/token/contracts/IERC20.sol";
-import "@daonuts/common/contracts/Names.sol";
+import "@daonuts/common/contracts/INames.sol";
 
-contract Hamburger is AragonApp, Names {
+contract Hamburger is AragonApp {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
@@ -34,7 +34,8 @@ contract Hamburger is AragonApp, Names {
     /// State
     mapping(uint => Asset) public assets;
     uint public assetsCount;
-    AbstractENS public ens;
+    /* AbstractENS public ens; */
+    INames public names;
     TokenManager public currencyManager;
     IERC20 public currency;
 
@@ -43,27 +44,19 @@ contract Hamburger is AragonApp, Names {
     bytes32 constant public COMMONS_ROLE = keccak256("COMMONS_ROLE");
 
     // Errors
-    string private constant NO_ACTIVE_ASSET = "NO_ACTIVE_ASSET";
-    string private constant ACTIVE_ASSET_EXISTS = "ACTIVE_ASSET_EXISTS";
-    string private constant NOT_OWNER = "NOT_OWNER";
-    string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
-    string private constant INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE";
-    string private constant ERROR_TOKEN_TRANSFER_FROM_TAX = "FINANCE_TKN_TRANSFER_TAX";
+    string private constant ERROR_EXISTS = "EXISTS";
+    string private constant ERROR_NOT_FOUND = "NOT_FOUND";
+    string private constant ERROR_NOT_ALLOWED = "NOT_ALLOWED";
+    string private constant ERROR_INVALID = "INVALID";
+    string private constant ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE";
     string private constant ERROR_TOKEN_TRANSFER_FROM_PRICE = "FINANCE_TKN_TRANSFER_PRICE";
     string private constant ERROR_TOKEN_TRANSFER_FROM_REFUND = "FINANCE_TKN_TRANSFER_REFUND";
     string private constant ERROR_TOKEN_TRANSFER_FROM_REVERTED = "FINANCE_TKN_TRANSFER_FROM_REVERT";
-    string private constant ERROR_0x0_NOT_ALLOWED = "ERROR_0x0_NOT_ALLOWED";
-    string private constant ERROR_INVALID_NAME = "ERROR_INVALID_NAME";
-    string private constant ERROR_TM_BURN = "ERROR_TM_BURN";
 
-    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, TokenManager _currencyManager) onlyInit public {
+    function initialize(address _names, TokenManager _currencyManager) onlyInit public {
         initialized();
 
-        ens = _ens;
-
-        setResolver(_resolver);
-        setRootNode(_rootNode);
-
+        names = INames(_names);
         currencyManager = _currencyManager;
         currency = _currencyManager.token();
     }
@@ -82,7 +75,7 @@ contract Hamburger is AragonApp, Names {
 
         _transferFrom(asset.owner, msg.sender, _tokenId);
         // require min balance of 1 day of tax
-        require(_credit > _price.mul(asset.tax).div(100), INSUFFICIENT_BALANCE);
+        require(_credit > _price.mul(asset.tax).div(100), ERROR_INSUFFICIENT_BALANCE);
         credit(_tokenId, _credit, true);
         asset.price = _price;
         asset.data = _data;
@@ -129,11 +122,11 @@ contract Hamburger is AragonApp, Names {
 
         if(asset.requireReg) {
           // require new owner to be registered
-          require(bytes(nameOfOwner(_to)).length != 0, USER_NOT_REGISTERED);
+          require(bytes(names.nameOfOwner(_to)).length != 0, ERROR_NOT_FOUND);
         }
-        require(asset.active == true, NO_ACTIVE_ASSET);
-        require(_to != address(0), ERROR_0x0_NOT_ALLOWED);
-        require(_from == asset.owner, NOT_OWNER);
+        require(asset.active == true, ERROR_NOT_FOUND);
+        require(_to != address(0), ERROR_NOT_ALLOWED);
+        require(_from == asset.owner, ERROR_NOT_ALLOWED);
 
         // current owner can transfer
         // if initiated by non-owner
@@ -198,7 +191,7 @@ contract Hamburger is AragonApp, Names {
     function setPrice(uint256 _tokenId, uint256 _price) public {
         payTax(_tokenId);
         Asset storage asset = assets[_tokenId];
-        require(msg.sender == asset.owner, NOT_OWNER);
+        require(msg.sender == asset.owner, ERROR_NOT_ALLOWED);
         asset.price = _price;
         emit Price(_tokenId, _price);
     }
@@ -210,7 +203,7 @@ contract Hamburger is AragonApp, Names {
      */
     function setData(uint256 _tokenId, string _data) public {
         Asset storage asset = assets[_tokenId];
-        require(msg.sender == asset.owner, NOT_OWNER);
+        require(msg.sender == asset.owner, ERROR_NOT_ALLOWED);
         asset.data = _data;
         emit Data(_tokenId, _data);
     }
@@ -224,7 +217,7 @@ contract Hamburger is AragonApp, Names {
     function credit(uint256 _tokenId, uint256 _amount, bool _onlyIfSelfOwned) public {
         Asset storage asset = assets[_tokenId];
         if(_onlyIfSelfOwned)
-          require(msg.sender == asset.owner, NOT_OWNER);
+          require(msg.sender == asset.owner, ERROR_NOT_ALLOWED);
 
         require(currency.transferFrom(msg.sender, address(this), _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED);
         asset.balance = asset.balance.add(_amount);
@@ -239,8 +232,8 @@ contract Hamburger is AragonApp, Names {
     function debit(uint256 _tokenId, uint256 _amount) public {
         Asset storage asset = assets[_tokenId];
         payTax(_tokenId);
-        require(msg.sender == asset.owner, NOT_OWNER);
-        require(_amount <= asset.balance, INSUFFICIENT_BALANCE);
+        require(msg.sender == asset.owner, ERROR_NOT_ALLOWED);
+        require(_amount <= asset.balance, ERROR_INSUFFICIENT_BALANCE);
         require(currency.transfer(msg.sender, _amount), ERROR_TOKEN_TRANSFER_FROM_REVERTED);
         asset.balance = asset.balance.sub(_amount);
         emit Balance(_tokenId, asset.balance);
@@ -252,10 +245,10 @@ contract Hamburger is AragonApp, Names {
      * @param _tax Tax
      */
     function mint(string _name, uint8 _tax, bool requireReg) auth(COMMONS_ROLE) external {
-        require(bytes(_name).length != 0, ERROR_INVALID_NAME);
+        require(bytes(_name).length != 0, ERROR_INVALID);
         uint _tokenId = assetsCount++;
         Asset storage asset = assets[_tokenId];
-        require(asset.active == false, ACTIVE_ASSET_EXISTS);
+        require(asset.active == false, ERROR_EXISTS);
         asset.active = true;
         asset.requireReg = requireReg;
         asset.owner = address(this);
@@ -270,7 +263,7 @@ contract Hamburger is AragonApp, Names {
      */
     function burn(uint256 _tokenId) auth(COMMONS_ROLE) external {
         Asset storage asset = assets[_tokenId];
-        require(asset.active == true, NO_ACTIVE_ASSET);
+        require(asset.active == true, ERROR_NOT_FOUND);
         payTax(_tokenId);
         _refund(_tokenId);
         // TODO - return balance if currently owned and > 0
@@ -288,7 +281,7 @@ contract Hamburger is AragonApp, Names {
         Asset storage asset = assets[_tokenId];
         if(asset.owner != address(this))
           payTax(_tokenId);
-        require(asset.active == true, NO_ACTIVE_ASSET);
+        require(asset.active == true, ERROR_NOT_FOUND);
         asset.tax = _tax;
         emit Tax(_tokenId, _tax);
     }

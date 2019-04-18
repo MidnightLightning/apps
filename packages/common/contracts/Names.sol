@@ -1,23 +1,18 @@
 pragma solidity ^0.4.24;
 
-import "@aragon/os/contracts/ens/ENSConstants.sol";
+import "@daonuts/common/contracts/INames.sol";
 import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
-import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
 
-contract Names is ENSConstants {
+contract Names {
     /// State
-    PublicResolver public resolver;
-    /// ENS
-    /* bytes32 internal constant DAONUTS_LABEL = keccak256("daonuts"); */
-    /* bytes32 internal constant DAONUTS_LABEL = 0x53bf7a5ae2fa6880bad06201387e90063522a09407b9b95effeb2a65d870dd4c; */
-    /* bytes32 internal constant DAONUTS_NODE = keccak256(abi.encodePacked(ETH_TLD_NODE, DAONUTS_LABEL)); */
+    IPublicResolver public resolver;
     bytes32 public rootNode;
 
-    function setResolver(address _resolver) internal {
-        resolver = PublicResolver(_resolver);
-    }
+    constructor(IPublicResolver _resolver, bytes32 _rootNode) {
 
-    function setRootNode(bytes32 _rootNode) internal {
+        require(_rootNode != bytes32(0), "NO_ROOT_NODE");
+
+        resolver = _resolver;
         rootNode = _rootNode;
     }
 
