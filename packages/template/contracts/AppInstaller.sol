@@ -14,26 +14,30 @@ import "@daonuts/registry/contracts/Registry.sol";
 import "@daonuts/tipping/contracts/Tipping.sol";
 import "@daonuts/token/contracts/Token.sol";
 import "@daonuts/token-manager/contracts/TokenManager.sol";
+import "@daonuts/common/contracts/Names.sol";
 
 contract AppInstaller is APMNamehash {
 
-    AbstractENS ens;
     AbstractENS aragonENS;
+    AbstractENS ens;
     PublicResolver resolver;
     bytes32 rootNode;
+    Names names;
     uint64 constant PCT = 10 ** 16;
     address constant ANY_ENTITY = address(-1);
 
-    constructor(AbstractENS _ens, AbstractENS _aragonENS, PublicResolver _resolver, bytes32 _rootNode) {
-        ens = _ens;
+    constructor(AbstractENS _aragonENS, AbstractENS _ens, address _resolver, bytes32 _rootNode) {
         aragonENS = _aragonENS;
+        ens = _ens;
         rootNode = _rootNode;
 
         if(_resolver == address(0)) {
-          resolver = PublicResolver(ens.resolver(0xfdd5d5de6dd63db72bbc2d487944ba13bf775b50a80805fe6fcaba9b0fba88f5)); // namehash("resolver.eth")
+          resolver = PublicResolver(_ens.resolver(0xfdd5d5de6dd63db72bbc2d487944ba13bf775b50a80805fe6fcaba9b0fba88f5)); // namehash("resolver.eth")
         } else {
-          resolver = _resolver;
+          resolver = PublicResolver(_resolver);
         }
+
+        names = new Names(resolver, rootNode);
     }
 
     function install(Kernel _dao, bytes32 _regRoot, bytes32 _distRoot) external {
@@ -52,13 +56,13 @@ contract AppInstaller is APMNamehash {
     function installDistribution(Kernel _dao, TokenManager _currencyManager, TokenManager _karmaManager, bytes32 _distRoot) internal returns (Distribution distribution) {
         bytes32 distributionAppId = apmNamehash("daonuts-distribution");
         distribution = Distribution(_dao.newAppInstance(distributionAppId, latestVersionAppBase(distributionAppId)));
-        distribution.initialize(ens, resolver, rootNode, _currencyManager, _karmaManager, _distRoot);
+        distribution.initialize(names, _currencyManager, _karmaManager, _distRoot);
     }
 
     function installHamburger(Kernel _dao, TokenManager _currencyManager) internal returns (Hamburger hamburger) {
         bytes32 hamburgerAppId = apmNamehash("daonuts-hamburger");
         hamburger = Hamburger(_dao.newAppInstance(hamburgerAppId, latestVersionAppBase(hamburgerAppId)));
-        hamburger.initialize(ens, resolver, rootNode, _currencyManager);
+        hamburger.initialize(names, _currencyManager);
     }
 
     function installVoting(Kernel _dao, Token _currency, Token _karma) internal returns (KarmaCapVoting voting) {
@@ -70,15 +74,15 @@ contract AppInstaller is APMNamehash {
     function installRegistry(Kernel _dao, bytes32 _regRoot) internal returns (Registry registry) {
         bytes32 registryAppId = apmNamehash("daonuts-registry");
         registry = Registry(_dao.newAppInstance(registryAppId, latestVersionAppBase(registryAppId)));
-        registry.initialize(ens, resolver, rootNode, _regRoot);
+        registry.initialize(ens, names, _regRoot);
     }
 
     function installTipping(Kernel _dao, Token _currency) internal returns (Tipping tipping) {
         ACL acl = ACL(_dao.acl());
         bytes32 tippingAppId = apmNamehash("daonuts-tipping");
         tipping = Tipping(_dao.newAppInstance(tippingAppId, latestVersionAppBase(tippingAppId)));
-        tipping.initialize(ens, resolver, rootNode, _currency);
-        acl.createPermission(tipping, tipping, tipping.NONE(), tipping);
+        tipping.initialize(_currency);
+        acl.createPermission(names, tipping, tipping, tipping.NONE(), tipping);
     }
 
     function installCurrencyManager(Kernel _dao, Token _currency) internal returns(TokenManager currencyManager) {

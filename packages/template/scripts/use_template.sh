@@ -44,17 +44,12 @@ export ROOT_NAME
 cd ~/Projects/daonuts/apps/packages/template
 . ./scripts/deploy_installer.sh
 echo AppInstaller: $APP_INSTALLER
-aragon deploy Template --init @ARAGON_ENS --environment $ENV
-
-echo What is the deployed Template address?
-read TEMPLATE
-
+TEMPLATE=$(aragon deploy Template --init @ARAGON_ENS --environment $ENV | awk 'NR>1 { if ($3 FS $4 == "Successfully deployed") print $7 }')
+echo Deployed Template to $TEMPLATE
 aragon apm publish major $TEMPLATE --environment $ENV
 
-dao new --template $TEMPLATE_APM --fn newInstance --fn-args $REG_ROOT $DIST_ROOT $APP_INSTALLER --environment $ENV
-
-echo What is the created DAO address?
-read DAO
+DAO=$(dao new --template $TEMPLATE_APM --fn newInstance --fn-args $REG_ROOT $DIST_ROOT $APP_INSTALLER --environment $ENV | awk 'NR>1 { if ($3 FS $4 == "Created DAO:") print $5 }')
+echo Created DAO: $DAO
 
 dao apps $DAO --environment $ENV
 

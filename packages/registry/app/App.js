@@ -27,7 +27,7 @@ import reg01 from '../registrations/post/0x69468d76.json'
 
 export default class App extends React.Component {
 
-  state = {newRoot:'', ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
+  state = {ens: null, test:null, newRoot:'', resolver: null, rootNode: null, ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
@@ -51,6 +51,7 @@ export default class App extends React.Component {
         if(o.rootsCount !== this.lastObservable.rootsCount)
           this.getRoots(o.rootsCount)
         this.lastObservable = o
+        this.getRootNode()
         this.getRootNodeOwner()
         this.checkRootNodeOwner()
       })
@@ -58,6 +59,10 @@ export default class App extends React.Component {
   }
 
   init = async () => {
+    this.getENS()
+    this.getTest()
+    this.getResolver()
+    this.getRootNode()
     this.getRootNodeOwner()
     this.checkRootNodeOwner()
     this.getUsername(this.props.userAccount)
@@ -81,6 +86,26 @@ export default class App extends React.Component {
     let username = await this.props.app.call('nameOfOwner', account).toPromise()
     console.log(username)
     if(username) this.setState({username})
+  }
+
+  getENS = async (account) => {
+    let ens = await this.props.app.call('ens').toPromise()
+    this.setState({ens})
+  }
+
+  getTest = async (account) => {
+    let test = await this.props.app.call('test').toPromise()
+    this.setState({test})
+  }
+
+  getResolver = async (account) => {
+    let resolver = await this.props.app.call('resolver').toPromise()
+    this.setState({resolver})
+  }
+
+  getRootNode = async (account) => {
+    let rootNode = await this.props.app.call('rootNode').toPromise()
+    this.setState({rootNode})
   }
 
   getRootNodeOwner = async (account) => {
@@ -163,7 +188,11 @@ export default class App extends React.Component {
           <br />
           <p>Your account: {this.props.userAccount}</p>
           <hr />
-          {this.state.ownsRootNode === false && <Info.Alert title="daonuts.eth">
+          <p>ens: {this.state.ens}</p>
+          <p>test: {this.state.test}</p>
+          <p>Resolver: {this.state.resolver}</p>
+          <p>Root node: {this.state.rootNode}</p>
+          {!this.state.ownsRootNode && <Info.Alert title="daonuts.eth">
             Registry does not own daonuts.eth. Registration tx will fail.
           </Info.Alert>}
           <br />

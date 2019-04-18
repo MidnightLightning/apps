@@ -6,9 +6,9 @@ import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
 import "@daonuts/token-manager/contracts/TokenManager.sol";
 import "@daonuts/token/contracts/IERC20.sol";
-import "@daonuts/common/contracts/Names.sol";
+import "@daonuts/common/contracts/INames.sol";
 
-contract Hamburger is AragonApp, Names {
+contract Hamburger is AragonApp {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
@@ -34,7 +34,8 @@ contract Hamburger is AragonApp, Names {
     /// State
     mapping(uint => Asset) public assets;
     uint public assetsCount;
-    AbstractENS public ens;
+    /* AbstractENS public ens; */
+    INames public names;
     TokenManager public currencyManager;
     IERC20 public currency;
 
@@ -56,14 +57,10 @@ contract Hamburger is AragonApp, Names {
     string private constant ERROR_INVALID_NAME = "ERROR_INVALID_NAME";
     string private constant ERROR_TM_BURN = "ERROR_TM_BURN";
 
-    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, TokenManager _currencyManager) onlyInit public {
+    function initialize(INames _names, TokenManager _currencyManager) onlyInit public {
         initialized();
 
-        ens = _ens;
-
-        setResolver(_resolver);
-        setRootNode(_rootNode);
-
+        names = _names;
         currencyManager = _currencyManager;
         currency = _currencyManager.token();
     }
@@ -129,7 +126,7 @@ contract Hamburger is AragonApp, Names {
 
         if(asset.requireReg) {
           // require new owner to be registered
-          require(bytes(nameOfOwner(_to)).length != 0, USER_NOT_REGISTERED);
+          require(bytes(names.nameOfOwner(_to)).length != 0, USER_NOT_REGISTERED);
         }
         require(asset.active == true, NO_ACTIVE_ASSET);
         require(_to != address(0), ERROR_0x0_NOT_ALLOWED);

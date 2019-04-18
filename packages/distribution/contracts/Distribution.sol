@@ -3,9 +3,9 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@daonuts/token-manager/contracts/TokenManager.sol";
-import "@daonuts/common/contracts/Names.sol";
+import "@daonuts/common/contracts/INames.sol";
 
-contract Distribution is AragonApp, Names {
+contract Distribution is AragonApp {
     using SafeMath for uint256;
 
     struct Distribution {
@@ -20,7 +20,8 @@ contract Distribution is AragonApp, Names {
     /// State
     bytes32[] public roots;
     mapping(bytes32 => Distribution) public distributions;
-    AbstractENS public ens;
+    /* AbstractENS public ens; */
+    INames public names;
     TokenManager public tokenManager;
     TokenManager public karmaManager;
 
@@ -34,14 +35,10 @@ contract Distribution is AragonApp, Names {
     string private constant USER_NOT_REGISTERED = "USER_NOT_REGISTERED";
     string private constant INVALID = "INVALID";
 
-    function initialize(AbstractENS _ens, address _resolver, bytes32 _rootNode, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
+    function initialize(INames _names, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
         initialized();
 
-        ens = _ens;
-
-        setResolver(_resolver);
-        setRootNode(_rootNode);
-
+        names = _names;
         tokenManager = _tokenManager;
         karmaManager = _karmaManager;
         _addRoot(_root);
@@ -71,7 +68,7 @@ contract Distribution is AragonApp, Names {
      * @param _award The award amount
      */
     function award(bytes32 _root, string _username, uint256 _award, bytes32[] _proof) external {
-        address recipient = ownerOfName(_username);
+        address recipient = names.ownerOfName(_username);
         require( recipient != address(0), USER_NOT_REGISTERED );
         require( distributions[_root].active == true, NO_ACTIVE_DISTRIBUTION );
         bytes32 nameHash = keccak256(_username);
