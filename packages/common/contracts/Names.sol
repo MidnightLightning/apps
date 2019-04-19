@@ -7,6 +7,11 @@ contract Names {
     IPublicResolver public resolver;
     bytes32 public rootNode;
 
+    constructor(IPublicResolver _resolver, bytes32 _rootNode) {
+        resolver = _resolver;
+        rootNode = _rootNode;
+    }
+
     function ownerOfName(string _username) public view returns (address) {
         return resolver.addr(nameNode(_username));
     }

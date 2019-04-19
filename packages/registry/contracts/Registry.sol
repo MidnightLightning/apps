@@ -36,6 +36,8 @@ contract Registry is AragonApp, IForwarder, Names {
     string private constant ERROR_ADDR_NOT_SET = "ADDR_NOT_SET";
     string private constant ERROR_INVALID = "INVALID";
 
+    constructor() Names(IPublicResolver(0), 0x0) {}
+
     function initialize(AbstractENS _ens, bytes32 _rootNode, bytes32 _root) onlyInit public {
         initialized();
 
