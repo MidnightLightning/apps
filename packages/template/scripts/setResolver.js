@@ -29,7 +29,6 @@ module.exports = async (
   }
 
   if(!ensAddress) console.log("missing ens address")
-  if(!registryAddress) console.log("missing registry address")
   if(!tld) console.log("missing tld")
   if(!rootName) console.log("missing rootName")
 
@@ -42,24 +41,21 @@ module.exports = async (
 
   const accounts = await getAccounts(web3)
 
-  log(`Deploying ${fullname} with ENS: ${ensAddress} and account: ${accounts[0]}`)
   const ENS = artifacts.require('AbstractENS')
-  const REGISTRY = artifacts.require('Registry')
 
   const ens = await ENS.at(ensAddress)
 
-  log('assigning ENS name to registry')
+  if(!resolverAddress) {
+    resolverAddress = await ens.resolver(namehash('resolver.eth'))
+  }
 
-  if (await ens.owner(node) === accounts[0]) {
-    log('Transferring name ownership from deployer to registry')
-    await ens.setOwner(node, registryAddress)
-  } else if (await ens.owner(tldNode) === accounts[0]) {
-    log('Creating subdomain and assigning it to daonuts registry')
-    await ens.setSubnodeOwner(tldNode, label, registryAddress)
-  } else {
-    throw new Error(`${accounts[0]} owns neither ${fullname} nor ${tld} to claim it. transfer ownership to this account first.`)
+  if(await ens.resolver(node) !== resolverAddress) {
+    log(`setting resolver for '${fullname}' as: ${resolverAddress}`)
+    if(await ens.owner(node) !== accounts[0]) {
+      await ens.setSubnodeOwner(tldNode, label, accounts[0])
+    }
+    await ens.setResolver(node, resolverAddress)
   }
 
   if(ens.resolver(node) === resolverAddress) throw new Error("resolver not set")
-  if(ens.owner(node) !== registryAddress) throw new Error("registry not node owner")
 }

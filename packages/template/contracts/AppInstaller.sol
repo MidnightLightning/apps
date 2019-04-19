@@ -71,7 +71,7 @@ contract AppInstaller is APMNamehash {
     function installRegistry(Kernel _dao, bytes32 _regRoot) internal returns (Registry registry) {
         bytes32 registryAppId = apmNamehash("daonuts-registry");
         registry = Registry(_dao.newAppInstance(registryAppId, latestVersionAppBase(registryAppId)));
-        registry.initialize(ens, address(names), _regRoot);
+        registry.initialize(ens, rootNode, _regRoot);
     }
 
     function installTipping(Kernel _dao, Token _currency) internal returns (Tipping tipping) {

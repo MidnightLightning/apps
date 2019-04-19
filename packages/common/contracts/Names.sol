@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "@daonuts/common/contracts/INames.sol";
+import "@daonuts/common/contracts/IPublicResolver.sol";
 
 contract Names {
     /// State
@@ -8,9 +8,6 @@ contract Names {
     bytes32 public rootNode;
 
     constructor(IPublicResolver _resolver, bytes32 _rootNode) {
-
-        require(_rootNode != bytes32(0), "NO_ROOT_NODE");
-
         resolver = _resolver;
         rootNode = _rootNode;
     }
