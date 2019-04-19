@@ -22,7 +22,7 @@ contract Distribution is AragonApp {
     mapping(bytes32 => Distribution) public distributions;
     /* AbstractENS public ens; */
     INames public names;
-    TokenManager public tokenManager;
+    TokenManager public currencyManager;
     TokenManager public karmaManager;
 
     /// ACL
@@ -34,11 +34,11 @@ contract Distribution is AragonApp {
     string private constant ERROR_NOT_ALLOWED = "NOT_ALLOWED";
     string private constant ERROR_INVALID = "INVALID";
 
-    function initialize(address _names, TokenManager _tokenManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
+    function initialize(address _names, TokenManager _currencyManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
         initialized();
 
         names = INames(_names);
-        tokenManager = _tokenManager;
+        currencyManager = _currencyManager;
         karmaManager = _karmaManager;
         _addRoot(_root);
     }
@@ -76,7 +76,7 @@ contract Distribution is AragonApp {
         distributions[_root].claimed[nameHash] = true;
         // do award user TODO
 
-        tokenManager.mint(recipient, _award);
+        currencyManager.mint(recipient, _award);
         karmaManager.mint(recipient, _award);
 
         //emit UserAwarded(_root, recipient, _award);
@@ -101,14 +101,6 @@ contract Distribution is AragonApp {
         return checkProof(_root, _proof, hash);
     }
 
-    function hash(string _username, uint256 _award) public view returns (bytes32 hash) {
-        hash = keccak256(_username, _award);
-    }
-
-    function hashAddress(address _address) public view returns (bytes32 hash) {
-        hash = keccak256(_address);
-    }
-
     function checkProof(bytes32 root, bytes32[] proof, bytes32 hash) public pure returns (bool) {
 
         for (uint i = 0; i < proof.length; i++) {
@@ -120,5 +112,9 @@ contract Distribution is AragonApp {
         }
 
         return hash == root;
+    }
+
+    function nameOfOwner(address _owner) public view returns (string) {
+        return names.nameOfOwner(_owner);
     }
 }

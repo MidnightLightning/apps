@@ -1,19 +1,11 @@
 pragma solidity ^0.4.24;
 
-import "@daonuts/common/contracts/INames.sol";
+import "@daonuts/common/contracts/IPublicResolver.sol";
 
 contract Names {
     /// State
     IPublicResolver public resolver;
     bytes32 public rootNode;
-
-    constructor(IPublicResolver _resolver, bytes32 _rootNode) {
-
-        require(_rootNode != bytes32(0), "NO_ROOT_NODE");
-
-        resolver = _resolver;
-        rootNode = _rootNode;
-    }
 
     function ownerOfName(string _username) public view returns (address) {
         return resolver.addr(nameNode(_username));

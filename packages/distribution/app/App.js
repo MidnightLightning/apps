@@ -28,7 +28,7 @@ import dist01 from '../distributions/post/0x3c29d249.json'
 
 export default class App extends React.Component {
 
-  state = {username: '', roots: [], claimed: [], registry: null, panelOpen: false, panel: {title: "Peach"}}
+  state = {username: '', roots: [], claimed: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
@@ -55,7 +55,6 @@ export default class App extends React.Component {
   }
 
   init = async () => {
-    this.getRegistry()
     this.getUsername(this.props.userAccount)
     let rootsCount = await this.props.app.call('getRootsCount').toPromise()
     this.getRoots(rootsCount)
@@ -92,13 +91,6 @@ export default class App extends React.Component {
     let username = await this.props.app.call('nameOfOwner', account).toPromise()
     if(username) this.setState({username})
     this.getClaimed()
-  }
-
-  getRegistry = async () => {
-    console.log('getRegistry')
-    let registry = await this.props.app.call('registry').toPromise()
-    console.log(registry)
-    this.setState({registry})
   }
 
   usePanel = (panel) => {
@@ -144,7 +136,6 @@ export default class App extends React.Component {
           {this.state.username ? <Welcome username={this.state.username} /> : null}
           <Text size="xlarge">Accepted merkle roots:</Text>
           <RootList roots={this.state.roots} claim={this.claim} claimed={this.state.claimed} distributions={this.distributions} userAccount={this.props.userAccount} username={this.state.username} />
-          <Info style={{"margin-top": "10px"}}>registry: {this.state.registry}</Info>
           <SidePanel title={this.state.panel.title} opened={this.state.panelOpen} onClose={this.closePanel}>
             {Child && <Child {...this.state.panel.childProps} />}
           </SidePanel>
