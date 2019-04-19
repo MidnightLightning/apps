@@ -19,14 +19,14 @@ import "@aragon/os/contracts/apm/APMNamehash.sol";
 import "./IAppInstaller.sol";
 
 contract TemplateBase is APMNamehash {
-    AbstractENS public ens;
+    AbstractENS public aragonENS;
     DAOFactory public fac;
 
     event DeployInstance(address dao);
     event InstalledApp(address appProxy, bytes32 appId);
 
-    constructor(DAOFactory _fac, AbstractENS _ens) {
-        ens = _ens;
+    constructor(DAOFactory _fac, AbstractENS _aragonENS) {
+        aragonENS = _aragonENS;
 
         // If no factory is passed, get it from on-chain bare-kit
         if (address(_fac) == address(0)) {
@@ -38,7 +38,7 @@ contract TemplateBase is APMNamehash {
     }
 
     function latestVersionAppBase(bytes32 appId) public view returns (address base) {
-        Repo repo = Repo(PublicResolver(ens.resolver(appId)).addr(appId));
+        Repo repo = Repo(PublicResolver(aragonENS.resolver(appId)).addr(appId));
         (,base,) = repo.getLatest();
 
         return base;
@@ -47,8 +47,7 @@ contract TemplateBase is APMNamehash {
 
 contract Template is TemplateBase {
 
-    constructor(AbstractENS ens) TemplateBase(DAOFactory(0), ens) {
-    }
+    constructor(AbstractENS aragonENS) TemplateBase(DAOFactory(0), aragonENS) {}
 
     function newInstance(bytes32 _regRoot, bytes32 _distRoot, IAppInstaller _installer) {
         Kernel dao = fac.newDAO(this);
@@ -58,7 +57,7 @@ contract Template is TemplateBase {
         // run external installer
         acl.grantPermission(_installer, dao, dao.APP_MANAGER_ROLE());
         acl.grantPermission(_installer, acl, acl.CREATE_PERMISSIONS_ROLE());
-        _installer.install(dao, ens, _regRoot, _distRoot);
+        _installer.install(dao, _regRoot, _distRoot);
         acl.revokePermission(_installer, dao, dao.APP_MANAGER_ROLE());
         acl.revokePermission(_installer, acl, acl.CREATE_PERMISSIONS_ROLE());
 

@@ -1,8 +1,11 @@
 #!/bin/bash
-
 case "$1" in
         staging)
             ENV="staging"
+            echo environment: $ENV
+            ;;
+        production)
+            ENV="production"
             echo environment: $ENV
             ;;
         *)

@@ -27,7 +27,7 @@ import reg01 from '../registrations/post/0x69468d76.json'
 
 export default class App extends React.Component {
 
-  state = {newRoot:'', ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
+  state = {contractAddress: null, newRoot:'', rootNode: null, ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
@@ -52,14 +52,13 @@ export default class App extends React.Component {
           this.getRoots(o.rootsCount)
         this.lastObservable = o
         this.getRootNodeOwner()
-        this.checkRootNodeOwner()
       })
     }
   }
 
   init = async () => {
+    this.getContractAddress()
     this.getRootNodeOwner()
-    this.checkRootNodeOwner()
     this.getUsername(this.props.userAccount)
     let rootsCount = await this.props.app.call('getRootsCount').toPromise()
     this.getRoots(rootsCount)
@@ -76,6 +75,12 @@ export default class App extends React.Component {
     this.setState({roots})
   }
 
+  getContractAddress = async (account) => {
+    console.log("getContractAddress")
+    let contractAddress = await this.props.app.call('self').toPromise()
+    if(contractAddress) this.setState({contractAddress, ownsRootNode: contractAddress === this.state.rootNodeOwner})
+  }
+
   getUsername = async (account) => {
     console.log("getUsername")
     let username = await this.props.app.call('nameOfOwner', account).toPromise()
@@ -85,12 +90,7 @@ export default class App extends React.Component {
 
   getRootNodeOwner = async (account) => {
     let rootNodeOwner = await this.props.app.call('rootNodeOwner').toPromise()
-    this.setState({rootNodeOwner})
-  }
-
-  checkRootNodeOwner = async () => {
-    let ownsRootNode = await this.props.app.call('ownsRootNode').toPromise()
-    this.setState({ownsRootNode})
+    this.setState({rootNodeOwner, ownsRootNode: this.state.contractAddress === rootNodeOwner})
   }
 
   handleNameCheckChange = async (event) => {
@@ -163,7 +163,11 @@ export default class App extends React.Component {
           <br />
           <p>Your account: {this.props.userAccount}</p>
           <hr />
-          {this.state.ownsRootNode === false && <Info.Alert title="daonuts.eth">
+          <p>ens: {this.state.ens}</p>
+          <p>test: {this.state.test}</p>
+          <p>Resolver: {this.state.resolver}</p>
+          <p>Root node: {this.state.rootNode}</p>
+          {!this.state.ownsRootNode && <Info.Alert title="daonuts.eth">
             Registry does not own daonuts.eth. Registration tx will fail.
           </Info.Alert>}
           <br />

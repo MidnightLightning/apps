@@ -3,7 +3,9 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/os/contracts/common/IForwarder.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
+import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
 
+import "@daonuts/common/contracts/IPublicResolver.sol";
 import "@daonuts/common/contracts/Names.sol";
 
 contract Registry is AragonApp, IForwarder, Names {
@@ -17,7 +19,6 @@ contract Registry is AragonApp, IForwarder, Names {
 
     /// State
     AbstractENS public ens;
-
     bytes32[] public roots;
     mapping(bytes32 => bool) public activeRegPeriod;
 
@@ -28,21 +29,22 @@ contract Registry is AragonApp, IForwarder, Names {
     bytes32 constant public TRANSFER_ROOT_NODE = 0x371d57b5d5e36ffacd760261ee1986c14c5a44484f6cd32d970413d31467313e;
 
     // Errors
-    string private constant REGISTRATION_EXISTS = "REGISTRATION_EXISTS";
-    string private constant NO_ACTIVE_REGISTRATION_PERIOD = "NO_ACTIVE_REGISTRATION_PERIOD";
-    string private constant REGISTRATION_PERIOD_EXISTS = "REGISTRATION_PERIOD_EXISTS";
-    string private constant REGISTRATION_NOT_FOUND = "REGISTRATION_NOT_FOUND";
-    string private constant INVALID = "INVALID";
-    string private constant ERROR_CAN_NOT_FORWARD = "REGISTRY_CAN_NOT_FORWARD";
-    string private constant ERROR_REGISTRY_NOT_OWNER = "REGISTRY_NOT_OWNER";
+    string private constant ERROR_EXISTS = "EXISTS";
+    string private constant ERROR_NOT_FOUND = "NOT_FOUND";
+    string private constant ERROR_NOT_ALLOWED = "NOT_ALLOWED";
     string private constant ERROR_NAME_NOT_SET = "NAME_NOT_SET";
     string private constant ERROR_ADDR_NOT_SET = "ADDR_NOT_SET";
+    string private constant ERROR_INVALID = "INVALID";
 
-    function initialize(AbstractENS _ens, bytes32 _root) onlyInit public {
+    constructor() Names(IPublicResolver(0), 0x0) {}
+
+    function initialize(AbstractENS _ens, bytes32 _rootNode, bytes32 _root) onlyInit public {
         initialized();
 
         ens = _ens;
-        setResolver(ens.resolver(PUBLIC_RESOLVER_NODE));
+        rootNode = _rootNode;
+        resolver = IPublicResolver(ens.resolver(rootNode));
+        require( address(resolver) != address(0), ERROR_NOT_FOUND );
 
         _addRoot(_root);
     }
@@ -52,7 +54,7 @@ contract Registry is AragonApp, IForwarder, Names {
      * @param _root New distribution merkle root
      */
     function addRoot(bytes32 _root) auth(START_REGISTRATION_PERIOD) public {
-        require( activeRegPeriod[_root] == false, REGISTRATION_PERIOD_EXISTS );
+        require( activeRegPeriod[_root] == false, ERROR_EXISTS );
         _addRoot(_root);
     }
 
@@ -63,30 +65,30 @@ contract Registry is AragonApp, IForwarder, Names {
     }
 
     function registerSelf(bytes32 _root, string _username, bytes32[] _proof) external {
-        require( activeRegPeriod[_root] == true, NO_ACTIVE_REGISTRATION_PERIOD );
-        require( ownerOfName(_username) == address(0), REGISTRATION_EXISTS );
-        require( bytes(nameOfOwner(msg.sender)).length == 0, REGISTRATION_EXISTS );
+        require( activeRegPeriod[_root] == true, ERROR_NOT_FOUND );
+        require( ownerOfName(_username) == address(0), ERROR_EXISTS );
+        require( bytes(nameOfOwner(msg.sender)).length == 0, ERROR_EXISTS );
 
-        require( validate(_root, msg.sender, _username, _proof), INVALID );
+        require( validate(_root, msg.sender, _username, _proof), ERROR_INVALID );
         _register(msg.sender, _username);
     }
 
     function deregisterSelf() external {
         string memory username = nameOfOwner(msg.sender);
-        require( bytes(username).length != 0, REGISTRATION_NOT_FOUND );
+        require( bytes(username).length != 0, ERROR_NOT_FOUND );
         _deregister(msg.sender, username);
     }
 
     function _register(address _owner, string _username) internal {
         bytes32 ownerLabel = sha3HexAddress(_owner);
-        ens.setSubnodeOwner(DAONUTS_NODE, ownerLabel, address(this));
-        bytes32 ownerNode = keccak256(abi.encodePacked(DAONUTS_NODE, ownerLabel));
+        ens.setSubnodeOwner(rootNode, ownerLabel, address(this));
+        bytes32 ownerNode = keccak256(abi.encodePacked(rootNode, ownerLabel));
         resolver.setName(ownerNode, _username);
         require( keccak256(abi.encodePacked(resolver.name(ownerNode))) == keccak256(abi.encodePacked(_username)), ERROR_NAME_NOT_SET );
 
         bytes32 usernameLabel = keccak256(_username);
-        ens.setSubnodeOwner(DAONUTS_NODE, usernameLabel, address(this));
-        bytes32 usernameNode = keccak256(abi.encodePacked(DAONUTS_NODE, usernameLabel));
+        ens.setSubnodeOwner(rootNode, usernameLabel, address(this));
+        bytes32 usernameNode = keccak256(abi.encodePacked(rootNode, usernameLabel));
         resolver.setAddr(usernameNode, _owner);
         require( resolver.addr(usernameNode) == _owner, ERROR_ADDR_NOT_SET );
 
@@ -109,16 +111,18 @@ contract Registry is AragonApp, IForwarder, Names {
         emit Deregistered(_owner, _username);
     }
 
-    function claimOwnerNode(address _owner) internal {                        // claim from a previous Registry contract
-        require( ens.owner(DAONUTS_NODE) == address(this), ERROR_REGISTRY_NOT_OWNER );
+    function claimOwnerNode(address _owner) internal {
+        // claim from a previous Registry contract
+        require( ens.owner(rootNode) == address(this), ERROR_NOT_ALLOWED );
         bytes32 ownerLabel = sha3HexAddress(_owner);
-        ens.setSubnodeOwner(DAONUTS_NODE, ownerLabel, address(this));
+        ens.setSubnodeOwner(rootNode, ownerLabel, address(this));
     }
 
-    function claimNameNode(string _username) internal {                        // claim from a previous Registry contract
-        require( ens.owner(DAONUTS_NODE) == address(this), ERROR_REGISTRY_NOT_OWNER );
+    function claimNameNode(string _username) internal {
+        // claim from a previous Registry contract
+        require( ens.owner(rootNode) == address(this), ERROR_NOT_ALLOWED );
         bytes32 usernameLabel = keccak256(_username);
-        ens.setSubnodeOwner(DAONUTS_NODE, usernameLabel, address(this));
+        ens.setSubnodeOwner(rootNode, usernameLabel, address(this));
     }
 
     /**
@@ -133,18 +137,6 @@ contract Registry is AragonApp, IForwarder, Names {
     ) public view returns (bool) {
         bytes32 hash = keccak256(_owner, _username);
         return checkProof(_root, _proof, hash);
-    }
-
-    function hash(address _owner, string _username) public view returns (bytes32) {
-        return keccak256(_owner, _username);
-    }
-
-    function hashAddress(address _owner) public view returns (bytes32) {
-        return keccak256(_owner);
-    }
-
-    function hashString(string _username) public view returns (bytes32) {
-        return keccak256(_username);
     }
 
     function checkProof(bytes32 root, bytes32[] proof, bytes32 hash) public pure returns (bool) {
@@ -166,7 +158,7 @@ contract Registry is AragonApp, IForwarder, Names {
     * @param _evmScript Script being executed
     */
     function forward(bytes _evmScript) public {
-        require(canForward(msg.sender, _evmScript), ERROR_CAN_NOT_FORWARD);
+        require(canForward(msg.sender, _evmScript), ERROR_NOT_ALLOWED);
         bytes memory input = new bytes(0); // TODO: Consider input for this
 
         address[] memory blacklist;
@@ -176,19 +168,15 @@ contract Registry is AragonApp, IForwarder, Names {
 
     function canForward(address _sender, bytes) public view returns (bool) {
         // can forward if sender has registered a username
-        return hasInitialized() && bytes(resolver.name(addrNode(_sender))).length != 0;
+        return hasInitialized() && bytes(nameOfOwner(_sender)).length != 0;
     }
 
     function isForwarder() public pure returns (bool) {
         return true;
     }
 
-    function ownsRootNode() public view returns (bool) {
-        return ens.owner(DAONUTS_NODE) == address(this);
-    }
-
     function rootNodeOwner() public view returns (address) {
-        return ens.owner(DAONUTS_NODE);
+        return ens.owner(rootNode);
     }
 
     /**
@@ -197,7 +185,11 @@ contract Registry is AragonApp, IForwarder, Names {
     * @param owner The address of the new owner.
     */
     function transferRootNode(address owner) auth(TRANSFER_ROOT_NODE) public {
-        ens.setOwner(DAONUTS_NODE, owner);
+        ens.setOwner(rootNode, owner);
         emit RootNodeTransferred(owner);
+    }
+
+    function self() public view returns (address) {
+        return address(this);
     }
 }
