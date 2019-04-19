@@ -43,8 +43,8 @@ contract Registry is AragonApp, IForwarder, Names {
 
         ens = _ens;
         rootNode = _rootNode;
-        resolver = IPublicResolver(ens.resolver(_rootNode));
-        require( address(resolver) != address(0), "ERROR_NOT_FOUND" );
+        resolver = IPublicResolver(ens.resolver(rootNode));
+        require( address(resolver) != address(0), ERROR_NOT_FOUND );
 
         _addRoot(_root);
     }
@@ -80,8 +80,6 @@ contract Registry is AragonApp, IForwarder, Names {
     }
 
     function _register(address _owner, string _username) internal {
-        IPublicResolver resolver = resolver;
-        bytes32 rootNode = rootNode;
         bytes32 ownerLabel = sha3HexAddress(_owner);
         ens.setSubnodeOwner(rootNode, ownerLabel, address(this));
         bytes32 ownerNode = keccak256(abi.encodePacked(rootNode, ownerLabel));
@@ -98,7 +96,6 @@ contract Registry is AragonApp, IForwarder, Names {
     }
 
     function _deregister(address _owner, string _username) internal {
-        IPublicResolver resolver = resolver;
         bytes32 ownerNode = addrNode(_owner);
         if(ens.owner(ownerNode) != address(this)){
             claimOwnerNode(_owner);

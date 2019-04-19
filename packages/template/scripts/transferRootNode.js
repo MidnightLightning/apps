@@ -28,38 +28,46 @@ module.exports = async (
     if (verbose) { console.log(...args) }
   }
 
-  if(!ensAddress) console.log("missing ens address")
-  if(!registryAddress) console.log("missing registry address")
-  if(!tld) console.log("missing tld")
-  if(!rootName) console.log("missing rootName")
+  if(!ensAddress) log("missing ens address")
+  if(!registryAddress) log("missing registry address")
+  if(!tld) log("missing tld")
+  if(!rootName) log("missing rootName")
 
   const tldNode = namehash(tld)
   const label = '0x'+keccak256(rootName)
-  console.log(`${rootName}:`, label)
   const fullname = `${rootName}.${tld}`
   const node = namehash(fullname)
-  console.log(`${fullname}:`, node)
 
   const accounts = await getAccounts(web3)
-
-  log(`Deploying ${fullname} with ENS: ${ensAddress} and account: ${accounts[0]}`)
   const ENS = artifacts.require('AbstractENS')
   const REGISTRY = artifacts.require('Registry')
-
   const ens = await ENS.at(ensAddress)
+
+  const resolver = await ens.resolver(node)
+
+  log(resolver)
+  if(!resolver) {
+    log(`resolver not set`)
+    throw new Error("resolver not set")
+  }
 
   log('assigning ENS name to registry')
 
   if (await ens.owner(node) === accounts[0]) {
-    log('Transferring name ownership from deployer to registry')
+    log(`Transferring ${fullname} ownership from deployer to registry:${registryAddress}`)
     await ens.setOwner(node, registryAddress)
   } else if (await ens.owner(tldNode) === accounts[0]) {
-    log('Creating subdomain and assigning it to daonuts registry')
+    log(`Creating ${fullname} and assigning it to registry:${registryAddress}`)
     await ens.setSubnodeOwner(tldNode, label, registryAddress)
   } else {
-    throw new Error(`${accounts[0]} owns neither ${fullname} nor ${tld} to claim it. transfer ownership to this account first.`)
+    log(`${accounts[0]} owns neither ${fullname} nor ${tld} to claim it. cannot transfer ownership.`)
+    throw new Error(`${accounts[0]} owns neither ${fullname} nor ${tld} to claim it. cannot transfer ownership.`)
   }
 
-  if(ens.resolver(node) === resolverAddress) throw new Error("resolver not set")
-  if(ens.owner(node) !== registryAddress) throw new Error("registry not node owner")
+  if(await ens.owner(node) === registryAddress) {
+    log(`registry is node owner`)
+  } else {
+    log(`registry is not node owner`)
+    throw new Error("registry is not node owner")
+  }
 }

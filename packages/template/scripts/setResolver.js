@@ -34,10 +34,8 @@ module.exports = async (
 
   const tldNode = namehash(tld)
   const label = '0x'+keccak256(rootName)
-  console.log(`${rootName}:`, label)
   const fullname = `${rootName}.${tld}`
   const node = namehash(fullname)
-  console.log(`${fullname}:`, node)
 
   const accounts = await getAccounts(web3)
 
@@ -57,5 +55,9 @@ module.exports = async (
     await ens.setResolver(node, resolverAddress)
   }
 
-  if(ens.resolver(node) === resolverAddress) throw new Error("resolver not set")
+  if(await ens.resolver(node) === resolverAddress) log(`resolver for '${fullname}' set as: ${resolverAddress}`)
+  else {
+    log("resolver not set")
+    throw new Error("resolver not set")
+  }
 }
