@@ -22,7 +22,6 @@ case "$1" in
             NETWORK="mainnet"
             ENS=0x314159265dd8dbb310642f98f50c066173c1259b
             ARAGON_ENS=$ENS
-            RESOLVER=0x0000000000000000000000000000000000000000
             ROOT_NODE=0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e
             OWNER=0x7b6C819e9db25c302A9adD821361bB95524023D7
             TLD="eth"
@@ -34,7 +33,6 @@ case "$1" in
             NETWORK="development"
             ENS=0x5f6f7e8cc7346a11ca2def8f827b7a0b612c56a1
             ARAGON_ENS=$ENS
-            RESOLVER=0x0000000000000000000000000000000000000000
             ROOT_NODE=0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e
             OWNER=0xb4124cEB3451635DAcedd11767f004d8a28c6eE7
             TLD="eth"

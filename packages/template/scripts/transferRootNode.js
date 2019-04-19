@@ -8,6 +8,7 @@ const globalWeb3 = this.web3 // Not injected unless called directly via truffle
 const defaultOwner = process.env.OWNER
 const defaultENSAddress = process.env.ENS
 const defaultRegistryAddress = process.env.REGISTRY
+const defaultResolverAddress = process.env.RESOLVER
 const defaultTLD = process.env.TLD
 const defaultRootName = process.env.ROOT_NAME
 
@@ -18,6 +19,7 @@ module.exports = async (
     web3 = globalWeb3,
     ensAddress = defaultENSAddress,
     registryAddress = defaultRegistryAddress,
+    resolverAddress = defaultResolverAddress,
     owner = defaultOwner,
     tld = defaultTLD,
     rootName = defaultRootName,
@@ -48,27 +50,29 @@ module.exports = async (
   const REGISTRY = artifacts.require('Registry')
 
   const ens = await ENS.at(ensAddress)
-  const publicResolver = await ens.resolver(namehash('resolver.eth'))
-  const registry = await REGISTRY.at(registryAddress)
+
+  if(!resolverAddress) {
+    resolverAddress = await ens.resolver(namehash('resolver.eth'))
+  }
+
+  if(await ens.resolver(node) !== resolverAddress) {
+    log(`setting resolver for '${fullname}' as: ${resolverAddress}`)
+    if(await ens.owner(node) !== accounts[0]) {
+      await ens.setSubnodeOwner(tldNode, label, accounts[0])
+    }
+    await ens.setResolver(node, resolverAddress)
+  }
 
   log('assigning ENS name to registry')
 
   if (await ens.owner(node) === accounts[0]) {
     log('Transferring name ownership from deployer to registry')
-    await ens.setOwner(node, registry.address)
-  } else {
+    await ens.setOwner(node, registryAddress)
+  } else if (await ens.owner(tldNode) === accounts[0]) {
     log('Creating subdomain and assigning it to daonuts registry')
-    try {
-      await ens.setSubnodeOwner(tldNode, label, registry.address)
-    } catch (err) {
-      console.error(
-        `Error: could not set the owner of '${fullname}' on the given ENS instance`,
-        `(${ensAddress}). Make sure you have ownership rights over the subdomain.`
-      )
-      throw err
-    }
-    let nodeOwner = await ens.owner(node)
-    console.log(nodeOwner, registry.address)
-    console.log(await ens.owner(node) === registry.address)
+    await ens.setSubnodeOwner(tldNode, label, registryAddress)
   }
+
+  if(ens.resolver(node) === resolverAddress) throw new Error("resolver not node resolver")
+  if(ens.owner(node) !== registryAddress) throw new Error("registry not node owner")
 }

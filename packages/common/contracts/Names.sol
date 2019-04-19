@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 import "@daonuts/common/contracts/INames.sol";
-import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
 
 contract Names {
     /// State

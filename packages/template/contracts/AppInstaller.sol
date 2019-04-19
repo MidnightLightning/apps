@@ -26,16 +26,13 @@ contract AppInstaller is APMNamehash {
     uint64 constant PCT = 10 ** 16;
     address constant ANY_ENTITY = address(-1);
 
-    constructor(AbstractENS _aragonENS, AbstractENS _ens, address _resolver, bytes32 _rootNode) {
+    constructor(AbstractENS _aragonENS, AbstractENS _ens, bytes32 _rootNode) {
         aragonENS = _aragonENS;
         ens = _ens;
         rootNode = _rootNode;
 
-        if(_resolver == address(0)) {
-          resolver = IPublicResolver(_ens.resolver(0xfdd5d5de6dd63db72bbc2d487944ba13bf775b50a80805fe6fcaba9b0fba88f5)); // namehash("resolver.eth")
-        } else {
-          resolver = IPublicResolver(_resolver);
-        }
+        resolver = IPublicResolver(_ens.resolver(_rootNode));
+        require( address(resolver) != address(0), "NO_RESOLVER" );
 
         names = new Names(resolver, rootNode);
     }
