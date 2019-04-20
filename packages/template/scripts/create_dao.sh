@@ -15,17 +15,26 @@ truffle exec --network $NETWORK scripts/setResolver.js
 export DAO=$(dao new | awk 'NR>1 { if ($3 FS $4 == "Created DAO:") print $5 }')
 echo Created DAO=$DAO
 
+# APP_INSTALLER=$(aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE | awk 'NR>1 { if ($3 FS $4 == "Successfully deployed") print $7 }')
+# echo Deployed APP_INSTALLER=$APP_INSTALLER
+aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE
+echo What is the AppInstaller address?
+read APP_INSTALLER
+export APP_INSTALLER
+
+aragon deploy PermissionSetter
+echo What is the PermissionSetter address?
+read PERMISSION_SETTER
+export PERMISSION_SETTER
+
+dao acl grant $DAO $DAO APP_MANAGER_ROLE $APP_INSTALLER
+
 dao apps $DAO
 echo What is the ACL Proxy address?
 read ACL
 export ACL
 
-APP_INSTALLER=$(aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE | awk 'NR>1 { if ($3 FS $4 == "Successfully deployed") print $7 }')
-echo Deployed APP_INSTALLER=$APP_INSTALLER
-export APP_INSTALLER
-
-dao acl grant $DAO $DAO APP_MANAGER_ROLE $APP_INSTALLER
-dao acl grant $ACL $ACL CREATE_PERMISSIONS_ROLE $APP_INSTALLER
+dao acl grant $DAO $ACL CREATE_PERMISSIONS_ROLE $PERMISSION_SETTER
 
 echo "install apps"
 truffle exec --network $NETWORK scripts/installApps.js

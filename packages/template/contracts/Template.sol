@@ -16,7 +16,7 @@ import "@aragon/os/contracts/lib/ens/AbstractENS.sol";
 import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
 import "@aragon/os/contracts/apm/APMNamehash.sol";
 
-import "./IAppInstaller.sol";
+/* import "./IAppInstaller.sol"; */
 
 contract TemplateBase is APMNamehash {
     AbstractENS public aragonENS;
