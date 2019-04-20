@@ -117,5 +117,21 @@ module.exports = async (
     log(e)
   }
 
+  let appInstallEvents = await appInstaller.getPastEvents('InstalledApp', {fromBlock: 0, toBlock: 'latest'})
+  let votingAddress = appInstallEvents.find(e=>e.returnValues.appId===votingAppId).returnValues.appProxy
+  let tippingAddress = appInstallEvents.find(e=>e.returnValues.appId===tippingAppId).returnValues.appProxy
+  let registryAddress = appInstallEvents.find(e=>e.returnValues.appId===registryAppId).returnValues.appProxy
+  let distributionAddress = appInstallEvents.find(e=>e.returnValues.appId===distributionAppId).returnValues.appProxy
+  let hamburgerAddress = appInstallEvents.find(e=>e.returnValues.appId===hamburgerAppId).returnValues.appProxy
+
+  // setPermissions
+  try {
+    let gas = await appInstaller.setPermissions.estimateGas(daoAddress, currencyManagerAddress, karmaManagerAddress, votingAddress, registryAddress, distributionAddress, hamburgerAddress, tippingAddress)
+    log(`'setPermissions' gas:`, gas)
+    await appInstaller.setPermissions(daoAddress, currencyManagerAddress, karmaManagerAddress, votingAddress, registryAddress, distributionAddress, hamburgerAddress, tippingAddress)
+  } catch(e){
+    log(e)
+  }
+
   log("finished installer")
 }

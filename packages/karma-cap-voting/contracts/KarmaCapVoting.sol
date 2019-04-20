@@ -80,8 +80,8 @@ contract KarmaCapVoting is IForwarder, AragonApp {
     * @param _voteTime Seconds that a vote will be open for token holders to vote (unless enough yeas or nays have been cast to make an early decision)
     */
     function initialize(
-        IERC20 _token,
-        IERC20 _karma,
+        address _token,
+        address _karma,
         uint64 _supportRequiredPct,
         uint64 _minAcceptQuorumPct,
         uint64 _voteTime
@@ -94,8 +94,8 @@ contract KarmaCapVoting is IForwarder, AragonApp {
         require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
         require(_supportRequiredPct < PCT_BASE, ERROR_INIT_SUPPORT_TOO_BIG);
 
-        token = _token;
-        karma = _karma;
+        token = IERC20(_token);
+        karma = IERC20(_karma);
         supportRequiredPct = _supportRequiredPct;
         minAcceptQuorumPct = _minAcceptQuorumPct;
         voteTime = _voteTime;

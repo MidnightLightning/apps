@@ -70,19 +70,15 @@ contract TokenManager is ITokenController, IForwarder, AragonApp {
     * @param _transferable whether the token can be transferred by holders
     * @param _maxAccountTokens Maximum amount of tokens an account can have (0 for infinite tokens)
     */
-    function initialize(
-        Token _token,
-        bool _transferable,
-        uint256 _maxAccountTokens
-    )
+    function initialize(address _token, bool _transferable, uint256 _maxAccountTokens)
         external
         onlyInit
     {
         initialized();
 
-        require(_token.controller() == address(this), ERROR_TOKEN_CONTROLLER);
+        require(Token(_token).controller() == address(this), ERROR_TOKEN_CONTROLLER);
 
-        token = _token;
+        token = Token(_token);
         maxAccountTokens = _maxAccountTokens == 0 ? uint256(-1) : _maxAccountTokens;
 
         if (token.transfersEnabled() != _transferable) {

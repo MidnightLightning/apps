@@ -53,12 +53,12 @@ contract Hamburger is AragonApp {
     string private constant ERROR_TOKEN_TRANSFER_FROM_REFUND = "FINANCE_TKN_TRANSFER_REFUND";
     string private constant ERROR_TOKEN_TRANSFER_FROM_REVERTED = "FINANCE_TKN_TRANSFER_FROM_REVERT";
 
-    function initialize(address _names, TokenManager _currencyManager) onlyInit public {
+    function initialize(address _names, address _currencyManager) onlyInit public {
         initialized();
 
         names = INames(_names);
-        currencyManager = _currencyManager;
-        currency = _currencyManager.token();
+        currencyManager = TokenManager(_currencyManager);
+        currency = currencyManager.token();
     }
 
     /**

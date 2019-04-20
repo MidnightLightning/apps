@@ -5,22 +5,16 @@ const getAccounts = require('@aragon/os/scripts/helpers/get-accounts')
 
 const globalArtifacts = this.artifacts // Not injected unless called directly via truffle
 const globalWeb3 = this.web3 // Not injected unless called directly via truffle
-const defaultENSAddress = process.env.ENS
-const defaultRegistryAddress = process.env.REGISTRY
-const defaultResolverAddress = process.env.RESOLVER
-const defaultTLD = process.env.TLD
-const defaultRootName = process.env.ROOT_NAME
 
 module.exports = async (
   truffleExecCallback,
   {
     artifacts = globalArtifacts,
     web3 = globalWeb3,
-    ensAddress = defaultENSAddress,
-    registryAddress = defaultRegistryAddress,
-    resolverAddress = defaultResolverAddress,
-    tld = defaultTLD,
-    rootName = defaultRootName,
+    ensAddress = process.env.ENS,
+    resolverAddress = process.env.RESOLVER,
+    tld = process.env.TLD,
+    rootName = process.env.ROOT_NAME,
     verbose = true
   } = {}
 ) => {
@@ -43,11 +37,12 @@ module.exports = async (
 
   const ens = await ENS.at(ensAddress)
 
-  resolverAddress = resolverAddress.toLowerCase()
-
-  if(!resolverAddress) {
+  if(resolverAddress){
+    resolverAddress = resolverAddress.toLowerCase()
+  } else {
     resolverAddress = await ens.resolver(namehash('resolver.eth'))
   }
+  log(resolverAddress)
 
   let currentResolver = await ens.resolver(node)
 

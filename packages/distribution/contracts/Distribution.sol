@@ -34,12 +34,12 @@ contract Distribution is AragonApp {
     string private constant ERROR_NOT_ALLOWED = "NOT_ALLOWED";
     string private constant ERROR_INVALID = "INVALID";
 
-    function initialize(address _names, TokenManager _currencyManager, TokenManager _karmaManager, bytes32 _root) onlyInit public {
+    function initialize(address _names, address _currencyManager, address _karmaManager, bytes32 _root) onlyInit public {
         initialized();
 
         names = INames(_names);
-        currencyManager = _currencyManager;
-        karmaManager = _karmaManager;
+        currencyManager = TokenManager(_currencyManager);
+        karmaManager = TokenManager(_karmaManager);
         _addRoot(_root);
     }
 
