@@ -8,26 +8,36 @@ case "$1" in
             ENV="production"
             echo environment: $ENV
             ;;
+        docker)
+            ENV="docker"
+            echo environment: $ENV
+            ;;
         *)
             ENV="default"
             echo environment: $ENV
             ;;
 esac
 
-cd ~/Projects/daonuts/apps/packages/distribution
+pushd ./packages/distribution
 aragon apm publish major --environment $ENV
+popd
 
-cd ~/Projects/daonuts/apps/packages/hamburger
+pushd ./packages/hamburger
 aragon apm publish major --environment $ENV
+popd
 
-cd ~/Projects/daonuts/apps/packages/karma-cap-voting
+pushd ./packages/karma-cap-voting
 aragon apm publish major --environment $ENV
+popd
 
-cd ~/Projects/daonuts/apps/packages/registry
+pushd ./packages/registry
 aragon apm publish major --environment $ENV
+popd
 
-cd ~/Projects/daonuts/apps/packages/tipping
+pushd ./packages/tipping
 aragon apm publish major --environment $ENV
+popd
 
-cd ~/Projects/daonuts/apps/packages/token-manager
+pushd ./packages/token-manager
 aragon apm publish major --environment $ENV
+popd
