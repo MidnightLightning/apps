@@ -2,8 +2,6 @@ const namehash = require('eth-ens-namehash').hash
 const keccak256 = require('js-sha3').keccak_256
 const logDeploy = require('@aragon/os/scripts/helpers/deploy-logger')
 const getAccounts = require('@aragon/os/scripts/helpers/get-accounts')
-const web3_1 = require('web3')
-// const promisify = require('bluebird').promisify
 
 const globalArtifacts = this.artifacts // Not injected unless called directly via truffle
 const globalWeb3 = this.web3 // Not injected unless called directly via truffle
@@ -33,6 +31,7 @@ module.exports = async (
     rootNode = process.env.ROOT_NODE,
     rootName = process.env.ROOT_NAME,
     tld = process.env.TLD,
+    apmRootName = process.env.APM_ROOT_NAME,
     verbose = true
   } = {}
 ) => {
@@ -44,6 +43,8 @@ module.exports = async (
   if(!appInstallerAddress) log("missing appInstaller address")
   if(!permissionSetterAddress) log("missing permissionSetter address")
 
+  log(web3.version)
+
   let block = await web3.eth.getBlock("latest")
 
   const APP_INSTALLER = artifacts.require('AppInstaller')
@@ -54,7 +55,7 @@ module.exports = async (
   const appInstaller = await APP_INSTALLER.at(appInstallerAddress)
   const permissionSetter = await PERMISSION_SETTER.at(permissionSetterAddress)
 
-  let tokenManagerAppId = namehash('daonuts-token-manager.aragonpm.eth')
+  let tokenManagerAppId = namehash(`daonuts-token-manager.${apmRootName}`)
   let tokenEventsFilter = appInstaller.CreatedToken({fromBlock: block.number})
   let appEventsFilter = appInstaller.InstalledApp({fromBlock: block.number})
 
@@ -96,7 +97,7 @@ module.exports = async (
 
   // installVoting
   let votingAddress
-  let votingAppId = namehash('daonuts-karma-cap-voting.aragonpm.eth')
+  let votingAppId = namehash(`daonuts-karma-cap-voting.${apmRootName}`)
   try {
     let gas = await appInstaller.installVoting.estimateGas(daoAddress, votingAppId, currencyAddress, karmaAddress)
     log(`'installVoting' gas:`, gas)
@@ -109,7 +110,7 @@ module.exports = async (
 
   // installTipping
   let tippingAddress
-  let tippingAppId = namehash('daonuts-tipping.aragonpm.eth')
+  let tippingAppId = namehash(`daonuts-tipping.${apmRootName}`)
   try {
     let gas = await appInstaller.installTipping.estimateGas(daoAddress, tippingAppId, currencyAddress)
     log(`'installTipping' gas:`, gas)
@@ -122,7 +123,7 @@ module.exports = async (
 
   // installRegistry
   let registryAddress
-  let registryAppId = namehash('daonuts-registry.aragonpm.eth')
+  let registryAppId = namehash(`daonuts-registry.${apmRootName}`)
   try {
     let gas = await appInstaller.installRegistry.estimateGas(daoAddress, registryAppId, rootNode, regRoot)
     log(`'installRegistry' gas:`, gas)
@@ -135,7 +136,7 @@ module.exports = async (
 
   // installDistribution
   let distributionAddress
-  let distributionAppId = namehash('daonuts-distribution.aragonpm.eth')
+  let distributionAppId = namehash(`daonuts-distribution.${apmRootName}`)
   try {
     let gas = await appInstaller.installDistribution.estimateGas(daoAddress, distributionAppId, currencyManagerAddress, karmaManagerAddress, distRoot)
     log(`'installDistribution' gas:`, gas)
@@ -148,7 +149,7 @@ module.exports = async (
 
   // installHamburger
   let hamburgerAddress
-  let hamburgerAppId = namehash('daonuts-hamburger.aragonpm.eth')
+  let hamburgerAppId = namehash(`daonuts-hamburger.${apmRootName}`)
   try {
     let gas = await appInstaller.installHamburger.estimateGas(daoAddress, hamburgerAppId, currencyManagerAddress)
     log(`'installHamburger' gas:`, gas)

@@ -11,6 +11,7 @@ case "$1" in
             RESOLVER=0xB14fdEe4391732eA9d2267054EAd2084684C0aD8
             ROOT_NODE=0xc1d51a8fe29a6c7a959dfdb52aa056a1148543c1250c273d18e4b00585b6f039
             TLD="test"
+            APM_ROOT_NAME="open.aragonpm.eth"
             echo environment: $ENV
             ;;
         production)
@@ -20,6 +21,7 @@ case "$1" in
             ARAGON_ENS=$ENS
             ROOT_NODE=0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e
             TLD="eth"
+            APM_ROOT_NAME="open.aragonpm.eth"
             echo environment: $ENV
             ;;
         *)
@@ -29,9 +31,11 @@ case "$1" in
             ARAGON_ENS=$ENS
             ROOT_NODE=0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e
             TLD="eth"
+            APM_ROOT_NAME="aragonpm.eth"
             echo environment: $ENV
             ;;
 esac
+
 export REG_ROOT=0x69468d76e397ff6a3e5f0b6bb4912940f2cb1bc46f2a2997cefc3d92b5bdea29
 export DIST_ROOT=0x3c29d24944d02f47733fa7e5e198a3e697566f69725817b5e549ab217413a35b
 export ROOT_NAME="daonuts"
@@ -41,6 +45,7 @@ export ARAGON_ENS
 export ENS
 export ROOT_NODE
 export TLD
+export APM_ROOT_NAME
 
 # echo "set resolver"
 # truffle exec --network $NETWORK scripts/setResolver.js
