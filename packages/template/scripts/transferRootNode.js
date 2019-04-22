@@ -16,11 +16,11 @@ module.exports = async (
   {
     artifacts = globalArtifacts,
     web3 = globalWeb3,
-    ensAddress = defaultENSAddress,
+    ensAddress = process.env.ENS,
     registryAddress = defaultRegistryAddress,
     resolverAddress = defaultResolverAddress,
-    tld = defaultTLD,
-    rootName = defaultRootName,
+    rootName = process.env.ROOT_NAME,
+    tld = process.env.TLD,
     verbose = true
   } = {}
 ) => {

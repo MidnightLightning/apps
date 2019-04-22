@@ -38,10 +38,10 @@ contract Registry is AragonApp, IForwarder, Names {
 
     constructor() Names(IPublicResolver(0), 0x0) {}
 
-    function initialize(AbstractENS _ens, bytes32 _rootNode, bytes32 _root) onlyInit public {
+    function initialize(address _ens, bytes32 _rootNode, bytes32 _root) onlyInit public {
         initialized();
 
-        ens = _ens;
+        ens = AbstractENS(_ens);
         rootNode = _rootNode;
         resolver = IPublicResolver(ens.resolver(rootNode));
         require( address(resolver) != address(0), ERROR_NOT_FOUND );

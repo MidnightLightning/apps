@@ -7,8 +7,8 @@ contract Names {
     IPublicResolver public resolver;
     bytes32 public rootNode;
 
-    constructor(IPublicResolver _resolver, bytes32 _rootNode) {
-        resolver = _resolver;
+    constructor(address _resolver, bytes32 _rootNode) {
+        resolver = IPublicResolver(_resolver);
         rootNode = _rootNode;
     }
 

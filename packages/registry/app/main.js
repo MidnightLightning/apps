@@ -10,6 +10,7 @@ class ConnectedApp extends React.Component {
     app: new Aragon(new providers.WindowMessage(window.parent)),
     observable: null,
     userAccount: '',
+    network: null,
   }
   componentDidMount() {
     window.addEventListener('message', this.handleWrapperMessage)
@@ -41,6 +42,11 @@ class ConnectedApp extends React.Component {
       app.accounts().subscribe(accounts => {
         this.setState({
           userAccount: accounts[0],
+        })
+      })
+      app.network().subscribe(network => {
+        this.setState({
+          network
         })
       })
     }
