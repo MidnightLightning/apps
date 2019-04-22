@@ -57,6 +57,7 @@ module.exports = {
     },
     rinkeby: {
       network_id: 4,
+      websocket: true,
       provider: providerForNetwork('rinkeby')
     }
   },

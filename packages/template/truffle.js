@@ -49,7 +49,10 @@ module.exports = {
     development: {
       host: 'localhost',
       port: 8545,
-      network_id: '*'
+      network_id: '*',
+      // provider: (()=>{
+      //   return new HDWalletProvider(DEFAULT_MNEMONIC, "http://localhost:8545")
+      // })()
     },
     mainnet: {
       network_id: 1,
