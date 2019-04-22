@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ~/Projects/daonuts/apps/packages/template
+# cd ~/Projects/daonuts/apps/packages/template
 
 case "$1" in
         staging)

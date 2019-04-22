@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ~/Projects/daonuts/apps/packages/template
+# cd ~/Projects/daonuts/apps/packages/template
 echo using ARAGON_ENS=$ARAGON_ENS
 echo using ENS=$ENS
 echo using ROOT_NODE=$ROOT_NODE
