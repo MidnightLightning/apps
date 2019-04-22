@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ~/Projects/daonuts/apps/packages/template
+
 case "$1" in
         staging)
             ENV="staging"
@@ -40,30 +42,42 @@ export ENS
 export ROOT_NODE
 export TLD
 
-echo "set resolver"
-truffle exec --network $NETWORK scripts/setResolver.js
+# echo "set resolver"
+# truffle exec --network $NETWORK scripts/setResolver.js
 
 export DAO=$(dao new --environment $ENV | awk 'NR>1 { if ($3 FS $4 == "Created DAO:") print $5 }')
 echo Created DAO=$DAO
 
-# APP_INSTALLER=$(aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE | awk 'NR>1 { if ($3 FS $4 == "Successfully deployed") print $7 }')
-# echo Deployed APP_INSTALLER=$APP_INSTALLER
-aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE --environment $ENV
-echo What is the AppInstaller address?
-read APP_INSTALLER
-export APP_INSTALLER
+export APP_INSTALLER=$(aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE --environment $ENV | awk 'NR>1 { if ($3 FS $4 == "Successfully deployed") print $7 }')
+if [ -z "$APP_INSTALLER" ]; then
+  echo AppInstaller deploy failed
+  echo re-running "aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE --environment $ENV" to show error
+  aragon deploy AppInstaller --init $ARAGON_ENS $ENS $ROOT_NODE --environment $ENV
+  exit 1
+fi
+echo Deployed APP_INSTALLER=$APP_INSTALLER
 
-aragon deploy PermissionSetter --environment $ENV
-echo What is the PermissionSetter address?
-read PERMISSION_SETTER
-export PERMISSION_SETTER
+export PERMISSION_SETTER=$(aragon deploy PermissionSetter --environment $ENV | awk 'NR>1 { if ($3 FS $4 == "Successfully deployed") print $7 }')
+if [ -z "$PERMISSION_SETTER" ]; then
+  echo PermissionSetter deploy failed
+  echo re-running "aragon deploy PermissionSetter --environment $ENV" to show error
+  aragon deploy PermissionSetter --environment $ENV
+  exit 1
+fi
+echo Deployed PERMISSION_SETTER=$PERMISSION_SETTER
 
 dao acl grant $DAO $DAO APP_MANAGER_ROLE $APP_INSTALLER --environment $ENV
 
-dao apps $DAO --environment $ENV
-echo What is the ACL Proxy address?
-read ACL
-export ACL
+export ACL=$(dao apps $DAO --environment $ENV | awk 'NR>1 { if ($2 == "acl") print $4 }')
+if [ -z "$ACL" ]; then
+  echo ACL proxy address not found
+  dao apps $DAO --environment $ENV
+  echo What is the ACL Proxy address?
+  read ACL
+  export ACL
+else
+  echo Found ACL=$ACL
+fi
 
 dao acl grant $DAO $ACL CREATE_PERMISSIONS_ROLE $PERMISSION_SETTER --environment $ENV
 

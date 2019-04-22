@@ -13,6 +13,7 @@
 		"@daonuts/registry": "^0.0.1",
 		"@daonuts/tipping": "^0.0.1",
 		"@daonuts/token": "^0.0.1",
+		"bluebird": "^3.5.4",
 		"csvtojson": "^2.0.8",
 		"homedir": "^0.6.0",
 		"json2csv": "^4.4.1",

@@ -27,7 +27,7 @@ import reg01 from '../registrations/post/0x69468d76.json'
 
 export default class App extends React.Component {
 
-  state = {contractAddress: null, newRoot:'', rootNode: null, ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
+  state = {contractAddress: null, newRoot:'', rootName: null, rootNode: null, ownsRootNode: false, rootNodeOwner: null, claim:'', username:'', roots: [], panelOpen: false, panel: {title: "Peach"}}
 
   lastObservable = {}
 
@@ -41,6 +41,8 @@ export default class App extends React.Component {
     if(!this.initDone) {
       this.init()
     }
+    if (this.props.network !== prevProps.network)
+      this.networkChanged(this.props.network)
     if (this.props.userAccount !== prevProps.userAccount)
       this.getUsername(this.props.userAccount)
     if (this.props.observable && !prevProps.observable) {
@@ -86,6 +88,15 @@ export default class App extends React.Component {
     let username = await this.props.app.call('nameOfOwner', account).toPromise()
     console.log(username)
     if(username) this.setState({username})
+  }
+
+  networkChanged = (network) => {
+    console.log("NETWORK IS", network)
+    if(network.id===4) {
+      this.setState({rootName: 'daonuts.test'})
+    } else {
+      this.setState({rootName: 'daonuts.eth'})
+    }
   }
 
   getRootNodeOwner = async (account) => {

@@ -22,7 +22,7 @@ contract AppInstaller {
     Names names;
     uint64 constant PCT = 10 ** 16;
 
-    event TokenCreated(address token, string name);
+    event CreatedToken(address token, string name);
     event InstalledApp(address appProxy, bytes32 appId);
 
     constructor(AbstractENS _aragonENS, AbstractENS _ens, bytes32 _rootNode) {
@@ -36,7 +36,7 @@ contract AppInstaller {
 
     function installCurrencyManager(Kernel _dao, bytes32 _tokenManagerAppId, string _name, string _symbol) {
         Token currency = new Token(_name, 18, _symbol, true);
-        emit TokenCreated(address(currency), _name);
+        emit CreatedToken(address(currency), _name);
         TokenManager currencyManager = TokenManager(_dao.newAppInstance(_tokenManagerAppId, latestVersionAppBase(_tokenManagerAppId)));
         currency.changeController(currencyManager);
         currencyManager.initialize(address(currency), true, 0);
@@ -45,7 +45,7 @@ contract AppInstaller {
 
     function installKarmaManager(Kernel _dao, bytes32 _tokenManagerAppId, string _name, string _symbol) {
         Token karma = new Token(_name, 18, _symbol, false);
-        emit TokenCreated(address(karma), _name);
+        emit CreatedToken(address(karma), _name);
         TokenManager karmaManager = TokenManager(_dao.newAppInstance(_tokenManagerAppId, latestVersionAppBase(_tokenManagerAppId)));
         karma.changeController(karmaManager);
         karmaManager.initialize(address(karma), false, 0);
