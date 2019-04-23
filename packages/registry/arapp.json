@@ -16,6 +16,10 @@
       "network": "development",
       "appName": "daonuts-registry.aragonpm.eth"
     },
+    "docker": {
+      "network": "docker",
+      "appName": "daonuts-registry.aragonpm.eth"
+    },
     "staging": {
       "registry": "0x98df287b6c145399aaa709692c8d308357bc085d",
       "appName": "daonuts-registry.open.aragonpm.eth",

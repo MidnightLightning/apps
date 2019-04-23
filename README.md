@@ -36,7 +36,7 @@ This is a monorepo for modules and apps related to the [/r/daonuts](https://www.
 
 1. In another terminal, run `docker-compose run --rm aragon bash`. This will bring you into a bash shell, running inside the `aragon` container.
 1. Run `cd /app && lerna link && lerna bootstrap --hoist` to get dependencies setup
-1. Run `npm run publish_apps`.
+1. Run `npm run publish_apps docker`.
 1. Run `npm run template` and follow prompts
 
 Read DAO_ADDRESS from `Created DAO: <DAO_ADDRESS>` and open `http://<DOCKER_HOST_IP>:3000/#/<DAO_ADDRESS>` manually
