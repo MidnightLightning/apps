@@ -18,26 +18,26 @@ case "$1" in
             ;;
 esac
 
-pushd ./packages/distribution
+pushd ../distribution
 aragon apm publish major --environment $ENV
 popd
 
-pushd ./packages/hamburger
+pushd ../hamburger
 aragon apm publish major --environment $ENV
 popd
 
-pushd ./packages/karma-cap-voting
+pushd ../karma-cap-voting
 aragon apm publish major --environment $ENV
 popd
 
-pushd ./packages/registry
+pushd ../registry
 aragon apm publish major --environment $ENV
 popd
 
-pushd ./packages/tipping
+pushd ../tipping
 aragon apm publish major --environment $ENV
 popd
 
-pushd ./packages/token-manager
+pushd ../token-manager
 aragon apm publish major --environment $ENV
 popd

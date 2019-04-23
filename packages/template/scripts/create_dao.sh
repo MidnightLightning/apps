@@ -24,6 +24,16 @@ case "$1" in
             APM_ROOT_NAME="open.aragonpm.eth"
             echo environment: $ENV
             ;;
+        docker)
+            ENV="docker"
+            NETWORK="development"
+            ENS=0x5f6f7e8cc7346a11ca2def8f827b7a0b612c56a1
+            ARAGON_ENS=$ENS
+            ROOT_NODE=0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e
+            TLD="eth"
+            APM_ROOT_NAME="aragonpm.eth"
+            echo environment: $ENV
+            ;;
         *)
             ENV="default"
             NETWORK="development"
@@ -47,8 +57,8 @@ export ROOT_NODE
 export TLD
 export APM_ROOT_NAME
 
-# echo "set resolver"
-# truffle exec --network $NETWORK scripts/setResolver.js
+echo "set resolver"
+truffle exec --network $NETWORK scripts/setResolver.js
 
 export DAO=$(dao new --environment $ENV | awk 'NR>1 { if ($3 FS $4 == "Created DAO:") print $5 }')
 echo Created DAO=$DAO
