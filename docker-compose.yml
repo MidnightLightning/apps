@@ -1,0 +1,55 @@
+version: "3"
+services:
+  # Ethereum private testnet node
+  devchain:
+    build: .
+    image: aragon-cli
+    command: "aragon devchain"
+    ports:
+      - "8545:8545"
+    volumes:
+      - ".:/app"
+    networks:
+      - aragon-dev
+
+  # IPFS node
+  ipfs:
+    build: .
+    image: aragon-cli
+    command: "aragon ipfs"
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs-data:/data/ipfs
+    networks:
+      - aragon-dev
+
+  # Aragon application node
+  # Has a mounted version of this project's contract files,
+  # plus the core aragon/aragon repo contents, plus lerna to manage package dependencies
+  aragon:
+    build:
+      context: .
+      dockerfile: Dockerfile.aragon
+    image: aragon
+    ports:
+      - "3000:3000"
+    volumes:
+      - ".:/app"
+    networks:
+      - aragon-dev
+    environment:
+      REACT_APP_DEFAULT_ETH_NODE: 'ws://devchain:8545'
+      REACT_APP_ETH_NETWORK_TYPE: 'local'
+      REACT_APP_IPFS_GATEWAY: 'http://ipfs:8080/ipfs'
+      REACT_APP_ASSET_BRIDGE: 'ipfs'
+      REACT_APP_ENS_REGISTRY_ADDRESS: "${REACT_APP_ENS_REGISTRY_ADDRESS}"
+
+networks:
+  aragon-dev:
+    driver: bridge
+
+volumes:
+  ipfs-data:
+  devchain-data:

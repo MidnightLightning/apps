@@ -27,6 +27,10 @@
       "network": "development",
       "appName": "daonuts-karma-cap-voting.aragonpm.eth"
     },
+    "docker": {
+      "network": "docker",
+      "appName": "daonuts-karma-cap-voting.aragonpm.eth"
+    },
     "staging": {
       "registry": "0x98df287b6c145399aaa709692c8d308357bc085d",
       "appName": "daonuts-karma-cap-voting.open.aragonpm.eth",

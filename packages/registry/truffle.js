@@ -51,6 +51,11 @@ module.exports = {
       port: 8545,
       network_id: '*'
     },
+    docker: {
+      host: 'devchain',
+      port: 8545,
+      network_id: '*'
+    },
     mainnet: {
       network_id: 1,
       provider: providerForNetwork('mainnet')

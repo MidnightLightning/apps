@@ -54,6 +54,11 @@ module.exports = {
       //   return new HDWalletProvider(DEFAULT_MNEMONIC, "http://localhost:8545")
       // })()
     },
+    docker: {
+      host: 'devchain',
+      port: 8545,
+      network_id: '*'
+    },
     mainnet: {
       network_id: 1,
       provider: providerForNetwork('mainnet')
