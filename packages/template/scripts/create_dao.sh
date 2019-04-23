@@ -26,7 +26,7 @@ case "$1" in
             ;;
         docker)
             ENV="docker"
-            NETWORK="development"
+            NETWORK="docker"
             ENS=0x5f6f7e8cc7346a11ca2def8f827b7a0b612c56a1
             ARAGON_ENS=$ENS
             ROOT_NODE=0xbaa9d81065b9803396ee6ad9faedd650a35f2b9ba9849babde99d4cdbf705a2e
