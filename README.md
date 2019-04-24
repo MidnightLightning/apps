@@ -14,7 +14,7 @@ This is a monorepo for modules and apps related to the [/r/daonuts](https://www.
 1. `git clone git@github.com:aragon/aragon.git && cd aragon`
 1. `npm i && npm run start:local`
 
-### Install apps and dao from template
+### Create dao
 
 1. `npm i -g lerna`
 1. `git clone git@github.com:daonuts/apps.git && cd apps`
@@ -33,7 +33,7 @@ This is a monorepo for modules and apps related to the [/r/daonuts](https://www.
 1. Run `docker-compose up -d`. This will start up the remaining containers (`ipfs` and `aragon`).
 1. Run `docker-compose logs -f` in a terminal to monitor the progress of all the containers.
 
-### Install apps and dao from template
+### Create dao
 
 1. In another terminal, run `docker-compose run --rm aragon bash`. This will bring you into a bash shell, running inside the `aragon` container.
 1. Run `cd /app && lerna link && lerna bootstrap --hoist` to get dependencies setup
@@ -43,9 +43,7 @@ This is a monorepo for modules and apps related to the [/r/daonuts](https://www.
 
 Read DAO_ADDRESS from `Created DAO: <DAO_ADDRESS>` and open `http://<DOCKER_HOST_IP>:3000/#/<DAO_ADDRESS>` manually
 
-## Building Go packages
+### Building Go packages
 
-1. install solc v0.4.25
-  1. `wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solidity-ubuntu-trusty.zip`
-  1. `unzip solidity-ubuntu-trusty`
-  1. `sudo cp solidity-ubuntu-trusty/solc /usr/local/bin/`
+1. In another terminal, run `docker-compose run --rm aragon bash`. This will bring you into a bash shell, running inside the `aragon` container.
+1. Run `cd /apps && npm run build:gopkg`

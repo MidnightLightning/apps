@@ -7,7 +7,7 @@
   "dependencies": {
   },
 	"scripts": {
-		"build:gopkg": "lerna run clean && lerna run build:gopkg",
+		"build:gopkg": "export APPS_PATH_ABS=$(pwd) && lerna run clean && lerna run build:gopkg",
 		"compile": "lerna run compile",
     "clean": "lerna run clean",
 		"size": "lerna run size"

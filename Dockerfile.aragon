@@ -3,6 +3,11 @@ FROM node:latest
 RUN cd / && git clone https://github.com/aragon/aragon.git
 RUN cd aragon && npm install --unsafe-perm=true --allow-root
 RUN npm install -g lerna @aragon/cli truffle --unsafe-perm=true --allow-root
+RUN wget https://github.com/ethereum/solidity/releases/download/v0.4.25/solc-static-linux -O /usr/local/bin/solc
+RUN chmod +x /usr/local/bin/solc
+RUN wget https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.8.27-4bcc0a37.tar.gz
+RUN tar -xvzf geth-alltools-linux-amd64*
+RUN mv geth-alltools-linux-amd64*/abigen /usr/local/bin/
 
 EXPOSE 3000
 

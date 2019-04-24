@@ -51,7 +51,7 @@
 		"build:app": "parcel build app/index.html -d dist/ --public-url '.' --no-cache",
 		"build:script": "parcel build app/script.js -d dist/ --no-cache",
 		"build": "npm run sync-assets && npm run build:app && npm run build:script",
-		"build:gopkg": "solc @aragon=$(pwd)/../../node_modules/@aragon @daonuts=$(pwd)/.. --abi contracts/Distribution.sol -o build --allow-paths=/home/carl/Projects/daonuts/apps && abigen --abi=./build/Distribution.abi --pkg=distribution --out=go/Distribution.go && solc @aragon=$(pwd)/../../node_modules/@aragon @daonuts=$(pwd)/.. --bin contracts/Distribution.sol -o build --allow-paths=/home/carl/Projects/daonuts/apps && abigen --bin=./build/Distribution.bin --abi=./build/Distribution.abi --pkg=distribution --out=go/Distribution.go",
+		"build:gopkg": "solc @aragon=$(pwd)/../../node_modules/@aragon @daonuts=$(pwd)/.. --abi contracts/Distribution.sol -o build --allow-paths=$APPS_PATH_ABS && abigen --abi=./build/Distribution.abi --pkg=distribution --out=go/Distribution.go && solc @aragon=$(pwd)/../../node_modules/@aragon @daonuts=$(pwd)/.. --bin contracts/Distribution.sol -o build --allow-paths=$APPS_PATH_ABS && abigen --bin=./build/Distribution.bin --abi=./build/Distribution.abi --pkg=distribution --out=go/Distribution.go",
 		"publish:patch": "aragon apm publish patch",
 		"publish:minor": "aragon apm publish minor",
 		"publish:major": "aragon apm publish major",
